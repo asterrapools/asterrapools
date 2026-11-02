@@ -110,7 +110,7 @@ pnpm lint && pnpm typecheck && pnpm test
 ```bash
 # Run in: repo root
 bash scripts/testnet-deploy.sh --broadcast           # contracts (asks for the keystore password once)
-ACME_EMAIL=you@example.com bash scripts/vps-deploy.sh testnet   # VPS stack, HTTPS, migrations, addresses
+bash scripts/vps-deploy.sh testnet   # VPS stack, HTTPS, migrations, addresses
 ```
 
 CI (`.github/workflows/build.yml`) only builds: checks on every push, and the web image for the `testnet` and

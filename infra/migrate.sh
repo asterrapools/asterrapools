@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 set -a; . ./.env; set +a
-psql() { docker compose exec -T db psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -q "$@"; }
+psql() { docker compose exec -T -e PGOPTIONS='-c client_min_messages=warning' db psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -q "$@"; }
 
 psql -c "create schema if not exists supabase_migrations;
          create table if not exists supabase_migrations.schema_migrations (version text primary key, name text, statements text[]);"
@@ -24,8 +24,8 @@ if [ "$fresh" = "t" ]; then
   psql < ../supabase/seed.sql
 fi
 
-# Vault secrets for public.asterra_invoke_indexer (pg_cron -> pg_net -> gateway -> indexer)
-psql -tA -v url="http://gateway:8000" -v token="$INDEXER_TOKEN" >/dev/null <<'SQL'
+# Vault secrets for public.asterra_invoke_indexer (pg_cron -> pg_net -> asterra-gateway -> indexer)
+psql -tA -v url="http://asterra-gateway:8000" -v token="$INDEXER_TOKEN" >/dev/null <<'SQL'
 select vault.update_secret(id, :'url') from vault.secrets where name = 'project_url';
 select vault.create_secret(:'url', 'project_url') where not exists (select 1 from vault.secrets where name = 'project_url');
 select vault.update_secret(id, :'token') from vault.secrets where name = 'indexer_token';

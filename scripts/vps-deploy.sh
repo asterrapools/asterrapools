@@ -17,7 +17,7 @@ rsync -az "$ROOT/packages/sdk/src/addresses/" "$HOST:$DIR/addresses/"
 # first deploy: create the secrets on this machine and send them; they never touch the repo
 if ! ssh "$HOST" "test -f $DIR/infra/.env"; then
   tmp="$(mktemp)"; chmod 600 "$tmp"; trap 'rm -f "$tmp"' EXIT
-  { node "$ROOT/scripts/vps-secrets.mjs"; grep -v -E '^(POSTGRES_PASSWORD|JWT_SECRET|SERVICE_ROLE_KEY|INDEXER_TOKEN|ACME_EMAIL)=' "$ROOT/infra/.env.example" | grep -v '^#'; echo "ACME_EMAIL=${ACME_EMAIL:?set ACME_EMAIL for Let's Encrypt}"; } > "$tmp"
+  { node "$ROOT/scripts/vps-secrets.mjs"; grep -v -E '^(POSTGRES_PASSWORD|JWT_SECRET|SERVICE_ROLE_KEY|INDEXER_TOKEN)=' "$ROOT/infra/.env.example" | grep -v '^#'; } > "$tmp"
   scp -q "$tmp" "$HOST:$DIR/infra/.env"
   ssh "$HOST" "chmod 600 $DIR/infra/.env"
 fi

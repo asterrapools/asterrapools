@@ -15,37 +15,39 @@ Proxy addresses per network: `packages/sdk/src/addresses/{local,testnet,mainnet}
 indexer all read these files. `startBlock` comes from the L2 broadcast receipts (`scripts/set-start-block.mjs`),
 because `block.number` inside Solidity on Arbitrum-based chains is the L1 block.
 
-## VPS (KVM 2, `160.238.36.55`)
+## VPS (KVM 2, `160.238.36.55`, Ubuntu 24.04)
 
-Everything runs from `infra/docker-compose.yml` in `/opt/asterrapools/infra`:
+The host runs Coolify. Its Traefik (`coolify-proxy`) owns ports 80/443 and issues Let's Encrypt certificates
+(resolver `letsencrypt`). AsterraPools does not bind any host port: its public containers join the external
+`coolify` network and register their routes with Traefik labels. Other projects on the host are untouched.
+
+Everything runs from `infra/docker-compose.yml` in `/opt/asterrapools/infra` (compose project `asterrapools`):
 
 | Service | Image | Role |
 |---|---|---|
 | `db` | `supabase/postgres:17.11.0.004` | Postgres with pg_cron, pg_net and Vault |
 | `rest` | `supabase/postgrest:v16.4` | PostgREST, reached only through the internal gateway |
 | `functions` | `supabase/edge-runtime:v1.77.4` | runs `supabase/functions` (`api`, `indexer`) through `infra/main` |
-| `caddy` | `caddy:2.10.2-alpine` | public HTTPS with automatic Let's Encrypt, plus the internal gateway on `:8000` |
+| `asterra-gateway` | `caddy:2.10.2-alpine` | internal gateway: `/rest/v1/*` → PostgREST, `/functions/v1/*` → functions |
 | `web-testnet` | `ghcr.io/asterrapools/asterrapools-web:testnet` | Next.js standalone build from CI |
 | `web-mainnet` | `ghcr.io/asterrapools/asterrapools-web:mainnet` | profile `mainnet`, started at the V1.0 release |
 
-Routing (`infra/Caddyfile`):
+Public routes (Traefik labels in the compose file):
 
-- `testnet.asterrapools.tech` → `web-testnet`, `/api/*` → read-only API.
-- `asterrapools.tech` → `APEX_UPSTREAM` (the testnet app until the mainnet release), `/api/*` → API.
-- `www.asterrapools.tech` → 301 to the apex.
-- Internal `http://gateway:8000`: `/rest/v1/*` → PostgREST, `/functions/v1/*` → functions. Port 8000 is not
-  published, so the indexer is unreachable from the internet.
+- `testnet.asterrapools.tech` and, until the mainnet release, `asterrapools.tech` → `web-testnet`.
+- `/api/*` on both hosts → `functions` (read-only API). The indexer has no public route.
+- `www.asterrapools.tech` → 301 to the apex; plain HTTP → 301 to HTTPS.
 
 Indexer schedule: pg_cron runs `asterra_invoke_indexer()` every minute, which calls
-`http://gateway:8000/functions/v1/indexer` through pg_net with the Vault secrets `project_url` and `indexer_token`
-(written by `infra/migrate.sh`). One database holds every chain; rows are keyed by `chain_id`.
+`http://asterra-gateway:8000/functions/v1/indexer` through pg_net with the Vault secrets `project_url` and
+`indexer_token` (written by `infra/migrate.sh`). One database holds every chain; rows are keyed by `chain_id`.
 
 ### Operations
 
 ```bash
 # Run in: ROOT
 bash scripts/vps-bootstrap.sh                 # once: Docker, ufw (22/80/443), unattended upgrades, swap
-ACME_EMAIL=you@example.com bash scripts/vps-deploy.sh testnet   # ship config, pull the CI image, migrate, load addresses
+bash scripts/vps-deploy.sh testnet   # ship config, pull the CI image, migrate, load addresses
 ```
 
 `vps-deploy.sh` never builds on the server. It rsyncs `infra/`, `supabase/functions`, `supabase/migrations`,

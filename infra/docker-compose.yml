@@ -2,8 +2,10 @@
 #   db         Postgres 17 (Supabase image: pg_cron, pg_net, vault, API roles)
 #   rest       PostgREST, used by the edge functions through the internal gateway
 #   functions  Supabase edge-runtime serving supabase/functions (api, indexer)
-#   caddy      public HTTPS (auto Let's Encrypt) + internal Supabase-style gateway on :8000
+#   gateway    Caddy as the internal Supabase-style gateway (/rest/v1, /functions/v1); no host ports
 #   web-*      Next.js builds pulled from GHCR (CI builds them, the VPS never compiles)
+# Public HTTPS is the host's existing Traefik (Coolify proxy, network `coolify`, resolver `letsencrypt`); the labels
+# below register the routes. Nothing here binds a host port, so other projects on the VPS are untouched.
 name: asterrapools
 
 x-logging: &logging
@@ -48,9 +50,19 @@ services:
     restart: unless-stopped
     logging: *logging
     depends_on: [rest]
+    networks: [default, coolify]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      # public read-only API on both hosts; /indexer stays internal
+      traefik.http.routers.asterra-api.rule: (Host(`testnet.asterrapools.tech`) || Host(`asterrapools.tech`)) && PathPrefix(`/api`)
+      traefik.http.routers.asterra-api.entrypoints: https
+      traefik.http.routers.asterra-api.tls.certresolver: letsencrypt
+      traefik.http.routers.asterra-api.priority: "100"
+      traefik.http.services.asterra-api.loadbalancer.server.port: "9000"
     command: ["start", "--main-service", "/home/deno/main"]
     environment:
-      SUPABASE_URL: http://gateway:8000
+      SUPABASE_URL: http://asterra-gateway:8000
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY:?set SERVICE_ROLE_KEY}
       INDEXER_TOKEN: ${INDEXER_TOKEN:?set INDEXER_TOKEN}
       FEATURES: ${FEATURES:-}
@@ -59,30 +71,40 @@ services:
       - ../supabase/functions:/home/deno/functions:ro
       - ./main:/home/deno/main:ro
 
-  caddy:
+  asterra-gateway:
     image: caddy:2.10.2-alpine
     restart: unless-stopped
     logging: *logging
     depends_on: [functions]
-    ports: ["80:80", "443:443", "443:443/udp"]
-    environment:
-      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
-      TESTNET_DOMAIN: ${TESTNET_DOMAIN:-testnet.asterrapools.tech}
-      MAINNET_DOMAIN: ${MAINNET_DOMAIN:-asterrapools.tech}
-      APEX_UPSTREAM: ${APEX_UPSTREAM:-web-testnet:3000}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data
-      - caddy-config:/config
-    networks:
-      default:
-        aliases: [gateway]
 
   web-testnet:
     image: ghcr.io/asterrapools/asterrapools-web:testnet
     restart: unless-stopped
     logging: *logging
     environment: { PORT: "3000", HOSTNAME: 0.0.0.0 }
+    networks: [default, coolify]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      # until the V1.0 mainnet release the apex serves the live testnet app (move the apex to web-mainnet then)
+      traefik.http.routers.asterra-testnet.rule: Host(`testnet.asterrapools.tech`) || Host(`asterrapools.tech`)
+      traefik.http.routers.asterra-testnet.entrypoints: https
+      traefik.http.routers.asterra-testnet.tls.certresolver: letsencrypt
+      traefik.http.services.asterra-testnet.loadbalancer.server.port: "3000"
+      traefik.http.routers.asterra-http.rule: Host(`testnet.asterrapools.tech`) || Host(`asterrapools.tech`) || Host(`www.asterrapools.tech`)
+      traefik.http.routers.asterra-http.entrypoints: http
+      traefik.http.routers.asterra-http.middlewares: asterra-https
+      traefik.http.middlewares.asterra-https.redirectscheme.scheme: https
+      traefik.http.middlewares.asterra-https.redirectscheme.permanent: "true"
+      traefik.http.routers.asterra-www.rule: Host(`www.asterrapools.tech`)
+      traefik.http.routers.asterra-www.entrypoints: https
+      traefik.http.routers.asterra-www.tls.certresolver: letsencrypt
+      traefik.http.routers.asterra-www.middlewares: asterra-www
+      traefik.http.middlewares.asterra-www.redirectregex.regex: ^https://www\.asterrapools\.tech/(.*)
+      traefik.http.middlewares.asterra-www.redirectregex.replacement: https://asterrapools.tech/$${1}
+      traefik.http.middlewares.asterra-www.redirectregex.permanent: "true"
 
   web-mainnet:
     image: ghcr.io/asterrapools/asterrapools-web:mainnet
@@ -90,8 +112,11 @@ services:
     logging: *logging
     profiles: [mainnet]
     environment: { PORT: "3000", HOSTNAME: 0.0.0.0 }
+    networks: [default, coolify]
+
+networks:
+  coolify:
+    external: true
 
 volumes:
   db-data:
-  caddy-data:
-  caddy-config:
