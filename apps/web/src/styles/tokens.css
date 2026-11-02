@@ -1,0 +1,121 @@
+/*
+ * AsterraPools design tokens. Source of truth: docs/ui-style/style-guide.md.
+ * Colours come from the Asterra star mark: lime #DFFF1F -> cyan #19E6FF -> cobalt #2B4BFF -> violet #8B3CFF.
+ * Stored as space-separated RGB channels so Tailwind opacity modifiers work (`bg-primary/20`).
+ * `:root` holds the light theme, `.dark` the dark theme (default via next-themes).
+ */
+:root {
+  /* Primary scale (theme independent), base cyan #19E6FF */
+  --primary-50: 236 253 255;
+  --primary-100: 207 249 255;
+  --primary-200: 160 243 255;
+  --primary-300: 101 236 255;
+  --primary-400: 25 230 255;
+  --primary-500: 0 204 232;
+  --primary-600: 0 160 190;
+  --primary-700: 0 116 150;
+  --primary-800: 6 93 120;
+  --primary-900: 11 76 99;
+  --primary-950: 2 46 63;
+
+  /* The prism: the four stops of the logo gradient (lime is set per theme below) */
+  --cyan: 25 230 255;
+  --cobalt: 43 75 255;
+  --violet: 139 60 255;
+  --prism: linear-gradient(115deg, rgb(var(--lime)) 0%, rgb(var(--cyan)) 36%, rgb(var(--cobalt)) 70%, rgb(var(--violet)) 100%);
+
+  /* Light theme: the neon lime stop is deepened so gradient text keeps contrast on white */
+  --lime: 128 168 0;
+  --bg: 243 245 250;
+  --bg-elevated: 248 249 252;
+  --surface: 255 255 255;
+  --surface-2: 236 239 246;
+  --border: 218 223 234;
+  --border-strong: 188 196 214;
+  --text: 9 12 20;
+  --text-2: 50 58 78;
+  --muted: 88 97 120;
+
+  --primary: 25 230 255;
+  --primary-hover: 101 236 255;
+  --primary-active: 0 204 232;
+  --primary-fg: 4 12 20;
+  --primary-text: 0 112 145;
+  --primary-soft: rgb(0 140 180 / 0.1);
+  --ring: 0 112 145;
+
+  --accent: 98 44 230;
+  --accent-text: 98 44 230;
+  --accent-soft: rgb(98 44 230 / 0.09);
+
+  --success: 56 128 0;
+  --danger: 208 34 78;
+  --danger-soft: rgb(208 34 78 / 0.09);
+  --warning: 160 96 0;
+  --warning-soft: rgb(160 96 0 / 0.1);
+  --info: 0 112 145;
+
+  /* Chart series (light mode uses deeper stops so lines read on white) */
+  --chart-1: 0 150 190;
+  --chart-2: 110 56 240;
+  --chart-3: 92 150 0;
+  --chart-4: 30 64 230;
+  --chart-5: 196 40 200;
+  --chart-6: 88 97 120;
+  --chart-grid: 222 227 237;
+
+  --glow: 0 0 0 1px rgb(0 140 180 / 0.25), 0 10px 30px -12px rgb(43 75 255 / 0.35);
+  --shadow-card: 0 1px 2px rgb(9 12 20 / 0.04), 0 8px 24px -16px rgb(9 12 20 / 0.12);
+  --grain-opacity: 0.025;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  color-scheme: light;
+}
+
+.dark {
+  --lime: 223 255 31;
+  --bg: 6 8 12;
+  --bg-elevated: 10 13 19;
+  --surface: 13 17 25;
+  --surface-2: 19 24 35;
+  --border: 32 39 56;
+  --border-strong: 50 60 84;
+  --text: 236 241 250;
+  --text-2: 176 186 208;
+  --muted: 128 139 164;
+
+  --primary: 25 230 255;
+  --primary-hover: 101 236 255;
+  --primary-active: 0 204 232;
+  --primary-fg: 4 12 20;
+  --primary-text: 25 230 255;
+  --primary-soft: rgb(25 230 255 / 0.1);
+  --ring: 25 230 255;
+
+  --accent: 139 92 255;
+  --accent-text: 172 142 255;
+  --accent-soft: rgb(139 92 255 / 0.13);
+
+  --success: 210 255 60;
+  --danger: 255 94 124;
+  --danger-soft: rgb(255 94 124 / 0.1);
+  --warning: 255 192 72;
+  --warning-soft: rgb(255 192 72 / 0.1);
+  --info: 25 230 255;
+
+  --chart-1: 25 230 255;
+  --chart-2: 150 108 255;
+  --chart-3: 210 255 60;
+  --chart-4: 72 104 255;
+  --chart-5: 236 92 255;
+  --chart-6: 128 139 164;
+  --chart-grid: 30 37 52;
+
+  --glow: 0 0 0 1px rgb(25 230 255 / 0.3), 0 0 36px -6px rgb(25 230 255 / 0.45);
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 20px 40px -24px rgb(0 0 0 / 0.6);
+  --grain-opacity: 0.04;
+
+  color-scheme: dark;
+}

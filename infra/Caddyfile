@@ -1,0 +1,42 @@
+{
+	email {$ACME_EMAIL}
+}
+
+# Internal gateway, Supabase-style paths for the edge functions and pg_net. Port 8000 is never published.
+http://:8000 {
+	handle_path /rest/v1/* {
+		reverse_proxy rest:3000
+	}
+	handle_path /functions/v1/* {
+		reverse_proxy functions:9000
+	}
+	respond 404
+}
+
+(site) {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+	# public read-only API; the indexer is reachable only through the internal gateway
+	handle /api/* {
+		reverse_proxy functions:9000
+	}
+	handle {
+		reverse_proxy {args[0]}
+	}
+}
+
+{$TESTNET_DOMAIN} {
+	import site web-testnet:3000
+}
+
+# Until the mainnet release the apex serves the live testnet app; set APEX_UPSTREAM=web-mainnet:3000 at launch.
+{$MAINNET_DOMAIN} {
+	import site {$APEX_UPSTREAM}
+}
+
+www.{$MAINNET_DOMAIN} {
+	redir https://{$MAINNET_DOMAIN}{uri} permanent
+}

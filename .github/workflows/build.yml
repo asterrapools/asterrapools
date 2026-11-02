@@ -1,0 +1,74 @@
+# Build only. Checks every push and PR, and on the testnet / mainnet branches builds the web image and pushes it to
+# GHCR so the VPS just pulls it (no node_modules or build cache on the server). Deploys are run by hand:
+# scripts/vps-deploy.sh.
+name: build
+
+on:
+  push:
+    branches: [main, testnet, mainnet]
+  pull_request:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: forge build
+        working-directory: packages/contracts
+      - run: forge test
+        working-directory: packages/contracts
+
+  image:
+    if: github.event_name == 'push' && (github.ref_name == 'testnet' || github.ref_name == 'mainnet')
+    needs: [web, contracts]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/asterrapools-web:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/asterrapools-web:${{ github.ref_name }}-${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_NETWORK=${{ github.ref_name }}
+            NEXT_PUBLIC_SITE_URL=${{ github.ref_name == 'mainnet' && 'https://asterrapools.tech' || 'https://testnet.asterrapools.tech' }}
+            NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=${{ vars.WALLETCONNECT_PROJECT_ID }}
+            NEXT_PUBLIC_FEATURES=${{ vars[format('FEATURES_{0}', github.ref_name)] }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

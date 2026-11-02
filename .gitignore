@@ -1,0 +1,31 @@
+node_modules/
+.pnpm-store/
+.turbo/
+dist/
+.next/
+out/
+coverage/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+# foundry
+packages/contracts/out/
+packages/contracts/cache/
+packages/contracts/out-upgrade/
+packages/contracts/cache-upgrade/
+packages/contracts/broadcast/*/31337/
+packages/contracts/broadcast/**/dry-run/
+# supabase
+supabase/.branches
+supabase/.temp
+# playwright
+apps/web/test-results/
+apps/web/playwright-report/
+
+packages/contracts/foundry-pp/
+*.tsbuildinfo
+supabase/functions/node_modules/
+packages/contracts/upgrades/
+packages/contracts/verification/

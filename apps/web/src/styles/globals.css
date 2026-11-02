@@ -1,0 +1,269 @@
+@import "./tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-bg font-sans text-[15px] leading-[1.6] text-fg antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  /* film grain over every page: keeps large dark fields from looking flat */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  h1, h2, h3, h4 {
+    @apply font-medium text-fg;
+  }
+  h1, h2 {
+    @apply font-display;
+  }
+  ::selection {
+    background: rgb(var(--primary) / 0.3);
+    color: rgb(var(--text));
+  }
+  :focus-visible {
+    outline: 1px solid rgb(var(--ring));
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgb(var(--ring) / 0.25);
+  }
+  /* lucide icons at 1.5 stroke */
+  .lucide {
+    stroke-width: 1.5;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply font-mono text-eyebrow uppercase text-muted;
+  }
+  .num {
+    @apply font-mono tabular-nums;
+  }
+  .hairline-grid {
+    @apply grid gap-px overflow-hidden rounded-xl border bg-border;
+  }
+  .hairline-grid > * {
+    @apply bg-surface;
+  }
+  /* L-shaped corner ticks outside a featured panel */
+  .brackets {
+    position: relative;
+  }
+  .brackets::before,
+  .brackets::after,
+  .brackets > .brackets-b::before,
+  .brackets > .brackets-b::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+    border-color: rgb(var(--border-strong));
+    border-style: solid;
+  }
+  .brackets::before {
+    top: -5px;
+    left: -5px;
+    border-width: 1px 0 0 1px;
+  }
+  .brackets::after {
+    top: -5px;
+    right: -5px;
+    border-width: 1px 1px 0 0;
+  }
+  .brackets > .brackets-b::before {
+    bottom: -5px;
+    left: -5px;
+    border-width: 0 0 1px 1px;
+  }
+  .brackets > .brackets-b::after {
+    bottom: -5px;
+    right: -5px;
+    border-width: 0 1px 1px 0;
+  }
+  .section-rule {
+    @apply h-px w-full bg-prism opacity-60;
+  }
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgb(var(--surface-2)) 0%,
+      rgb(var(--border)) 50%,
+      rgb(var(--surface-2)) 100%
+    );
+    background-size: 200% 100%;
+    @apply animate-shimmer rounded-sm;
+  }
+  .transition-ui {
+    transition-property: color, background-color, border-color, box-shadow, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-out);
+  }
+
+  /* Text and borders painted with the logo gradient */
+  .text-prism {
+    background: var(--prism);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .glass {
+    background: rgb(var(--surface) / 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+  /* 1px gradient ring on a rounded element, drawn with a mask so the fill stays untouched */
+  .prism-ring {
+    position: relative;
+  }
+  .prism-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: var(--prism);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  .grid-paper {
+    background-image:
+      linear-gradient(rgb(var(--border) / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /*
+   * Buttons and header controls. Hover (and keyboard focus): a prism ring fades in and the control lifts 1px.
+   * Press: it settles and squeezes slightly, the ring flares, then springs back on release.
+   */
+  .fx-prism {
+    position: relative;
+    isolation: isolate;
+    transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+    transition-duration: 180ms;
+    transition-timing-function: var(--ease-out);
+  }
+  .fx-prism::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    border-radius: inherit;
+    background: var(--prism);
+    background-size: 200% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms var(--ease-out), inset 220ms var(--ease-spring);
+  }
+  .fx-prism:focus-visible::after {
+    opacity: 1;
+  }
+  @media (hover: hover) {
+    .fx-prism:hover {
+      transform: translateY(-1px);
+    }
+    .fx-prism:hover::after {
+      opacity: 1;
+      animation: prism-pan 2.4s linear infinite;
+    }
+  }
+  .fx-prism:active {
+    transform: translateY(0) scale(0.97);
+    transition-duration: 80ms;
+  }
+  .fx-prism:active::after {
+    inset: -3px;
+    opacity: 1;
+    box-shadow: 0 0 18px rgb(var(--cyan) / 0.45);
+  }
+  .fx-prism:disabled {
+    transform: none;
+  }
+  .fx-prism:disabled::after {
+    display: none;
+  }
+  /* range inputs: thin track, prism fill is implied by the thumb ring */
+  .prism-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .prism-range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--prism);
+    opacity: 0.85;
+  }
+  .prism-range::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--prism);
+  }
+  .prism-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    margin-top: -6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: rgb(var(--surface));
+    border: 2px solid rgb(var(--text));
+    transition: transform 150ms var(--ease-spring);
+  }
+  .prism-range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: rgb(var(--surface));
+    border: 2px solid rgb(var(--text));
+  }
+  .prism-range:active::-webkit-slider-thumb {
+    transform: scale(1.25);
+  }
+  @keyframes prism-pan {
+    from { background-position: 0% 50%; }
+    to { background-position: 200% 50%; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
