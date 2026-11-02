@@ -37,6 +37,8 @@ compilation_restrictions = []
 
 [profile.default.fuzz]
 runs = 256
+# fixed seed: fuzz and invariant campaigns replay identically locally and in CI
+seed = "0xa57e22a"
 
 [profile.ci.fuzz]
 runs = 2000
