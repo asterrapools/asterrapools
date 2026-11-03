@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # Jalankan di: ROOT  ->  bash scripts/verify-contracts.sh <testnet|mainnet>
-# Interactive explorer verification of every AsterraPools contract, made for screen recording: the output shows contract
-# names, addresses and explorer links, never local paths. Sends no transaction and needs no keystore.
+# Interactive explorer verification of every AsterraPools contract, built for screen recording. Four steps: check the
+# chain and explorer, submit each contract's source code, read every contract back from the explorer as proof (contract
+# name, full address and explorer link, grouped by module), then open any contract on the explorer.
+# Sends no transaction, needs no keystore, and prints no wallet address or local path.
 #
 # Each contract is submitted with a source package prepared by scripts/verify-prepare.mjs, which already proved
 # locally that the package compiles to the exact bytes deployed on-chain. Missing packages are prepared first.
-# After submitting, the script reads every contract back from the explorer API as proof, saves the links to
-# docs/verification/<network>.md and lets you open any contract on the explorer.
-# Safe to re-run: verified contracts show as already verified.
+# Results are also saved to docs/verification/<network>.md. Safe to re-run: verified contracts show as verified.
 #
 # Verifier: testnet submits to the Blockscout API directly. The mainnet Blockscout API sits behind a Cloudflare
 # browser challenge that no command-line client passes (VPN included), so mainnet goes through Sourcify, which
 # verifies the same package and forwards it to the explorer from its own servers. VERIFIER=blockscout|sourcify
-# overrides the choice.
+# overrides the choice. PACE=0 removes the small reading delays between result cards.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 NETWORK="${1:-}"
@@ -65,26 +65,62 @@ sourcify_online() {
   api "${SOURCIFY}/chains" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{console.log(JSON.parse(d).some(c=>c.chainId===+process.argv[1]&&c.supported)?"ok":"no")}catch{console.log("down")}})' "$CHAIN"
 }
 
+PACE="${PACE:-0.12}"
+breathe() { [ "$TTY" = 1 ] && sleep "$PACE"; }
+step() { echo; echo "  ${L}${B}Step $1/4${N}  ${B}$2${N}"; echo "  ${DIM}$3${N}"; echo; }
+
+# Display rows from the manifest: real contract name, role and module. A proxy or beacon carries the name of the
+# Asterra contract behind it; the manifest label tells which one ("DLMM factory (proxy)" -> AsterraDLMMFactory).
+display_rows() {
+  node -e '
+    const m = require(process.argv[1]);
+    const short = (s) => s.split(":").pop();
+    const base = (l) => l.replace(/ \((proxy|implementation)\)$/, "").replace(/ beacon$/, "");
+    const implOf = new Map();
+    for (const x of m) if (!/^(ERC1967Proxy|UpgradeableBeacon)$/.test(short(x.contractName))) implOf.set(base(x.label), short(x.contractName));
+    const MODULE = { AsterraHub: "Core", AsterraPositions: "Core", AsterraRouter: "Core", AsterraHook: "Core",
+      AsterraDLMMFactory: "DLMM", AsterraDLMMLimitOrders: "DLMM", AsterraDLMMPool: "DLMM",
+      AsterraDAMMFactory: "DAMM", AsterraDAMMPool: "DAMM", AsterraLaunchpad: "Launchpad", AsterraLaunchToken: "Launchpad",
+      AsterraToken: "ASTER token & buyback", AsterraBuyback: "ASTER token & buyback",
+      AsterraLendingVault: "Credit", AsterraCreditManager: "Credit", FaucetToken: "Test tokens" };
+    for (const x of m) {
+      const c = short(x.contractName);
+      let name = c, role = "implementation";
+      if (c === "ERC1967Proxy") { name = implOf.get(base(x.label)) ?? c; role = "proxy"; }
+      else if (c === "UpgradeableBeacon") { name = implOf.get(base(x.label)) ?? c; role = "beacon"; }
+      else if (c === "FaucetToken") { name = "FaucetToken " + x.label.split(" ")[0]; role = "test token"; }
+      console.log([name, role, MODULE[name.split(" ")[0]] ?? "Other", x.address].join("\t"));
+    }' "$PKG/manifest.json"
+}
+
 # ------------------------------------------------------------------ intro
 
 clear 2>/dev/null || true
 echo
-echo "  ${L}${B}◆ ASTERRA FI${N}  ${B}Smart contract verification${N}"
-echo "  ${DIM}────────────────────────────────────────────────────────────${N}"
+echo "  ${L}${B}◆ ASTERRAPOOLS${N}  ${B}Smart contract verification${N}"
+echo "  ${DIM}Built for the flow of every market.${N}"
+echo "  ${DIM}────────────────────────────────────────────────────────────────${N}"
 echo "  Network    ${B}${NAME}${N} ${DIM}· chain ${CHAIN}${N}"
 echo "  Explorer   ${EXPLORER}"
 if [ "$VERIFIER" = sourcify ]; then
   echo "  Method     source code verified by Sourcify against the bytecode"
   echo "             deployed on-chain, then published to the explorer"
 else
-  echo "  Method     source code compiled by the explorer and matched"
-  echo "             against the bytecode deployed on-chain"
+  echo "  Method     the explorer compiles the published source code and"
+  echo "             matches it against the bytecode deployed on-chain"
 fi
 echo
+echo "  ${B}What happens${N}"
+echo "  ${C}1${N}  Check that the chain and the explorer are online"
+echo "  ${C}2${N}  Submit the source code of every contract to the explorer"
+echo "  ${C}3${N}  Read every contract back from the explorer as proof"
+echo "  ${C}4${N}  Open any contract on the explorer"
+echo
+pause "Press Enter to start"
 
-# ------------------------------------------------------------------ checks
+# ------------------------------------------------------------------ 1 checks
 
-echo "  ${B}Checks${N}"
+step 1 "Checks" "Is the chain answering, and is the explorer ready to receive source code?"
 spin "Connecting to ${NAME}" cast chain-id --rpc-url "$RPC"
 if [ "$(tr -d '[:space:]' <"$TMP/out")" = "$CHAIN" ]; then echo "  ${OK} Chain online (${CHAIN})"; else echo "  ${BAD} Chain did not answer"; exit 1; fi
 
@@ -111,12 +147,12 @@ if [ ! -f "$PKG/manifest.json" ]; then
   [ -f "$PKG/manifest.json" ] || { echo "  ${BAD} Could not prepare the source packages"; exit 1; }
 fi
 TOTAL="$(node -e "console.log(require('$PKG/manifest.json').length)")"
-echo "  ${OK} ${TOTAL} source packages ready, each proven to match its on-chain bytecode"
+NAMES=(); ROLES=(); MODS=(); ADDRS=()
+# addresses in their EIP-55 checksum form, the way the explorer shows them
+while IFS=$'\t' read -r n r g a; do NAMES+=("$n"); ROLES+=("$r"); MODS+=("$g"); ADDRS+=("$(cast to-check-sum-address "$a" 2>/dev/null || echo "$a")"); done < <(display_rows)
+echo "  ${OK} ${TOTAL} source packages ready, each proven to compile to its on-chain bytecode"
 echo
-
 pause "Press Enter to verify ${TOTAL} contracts"
-echo
-
 # ------------------------------------------------------------------ submit
 
 # Sourcify match for an address: exact_match | match | none
@@ -186,32 +222,32 @@ submit() { # $1 manifest index -> prints: verified | already | failed:<reason>
   echo "failed:${last:-timed out waiting for the explorer}"
 }
 
-echo "  ${B}Verifying${N}"
+
+# ------------------------------------------------------------------ 2 verify
+
+step 2 "Verify" "Each contract's source code goes to the explorer, which compiles it and compares it with the chain."
 ok=0; failed=0
-LABELS=(); ADDRS=()
 for ((i = 0; i < TOTAL; i++)); do
-  address="$(node -e "console.log(require('$PKG/manifest.json')[$i].address)")"
-  label="$(node -e "console.log(require('$PKG/manifest.json')[$i].label)")"
-  LABELS+=("$label"); ADDRS+=("$address")
-  head="$(printf "${DIM}%2d/%d${N}  %-36s ${DIM}%s${N}" "$((i + 1))" "$TOTAL" "$label" "$(short "$address")")"
+  head="$(printf "${DIM}%2d/%d${N}  %-30s ${DIM}%-15s %s${N}" "$((i + 1))" "$TOTAL" "${NAMES[$i]}" "${ROLES[$i]}" "$(short "${ADDRS[$i]}")")"
   spin "$(printf "%s  verifying…" "$head")" submit "$i"
   result="$(tail -1 "$TMP/out")"
   case "$result" in
     verified) printf "  ${OK} %s  ${G}verified${N}\n" "$head"; ok=$((ok + 1)) ;;
-    already) printf "  ${OK} %s  ${G}already verified${N}\n" "$head"; ok=$((ok + 1)) ;;
+    already) printf "  ${OK} %s  ${G}verified${N}\n" "$head"; ok=$((ok + 1)) ;;
     *) printf "  ${BAD} %s  ${R}%s${N}\n" "$head" "${result#failed:}"; failed=$((failed + 1)) ;;
   esac
 done
 echo
+pause "Press Enter to read every contract back from the explorer"
 
-# ------------------------------------------------------------------ proof
+# ------------------------------------------------------------------ 3 proof
 
 if [ "$VERIFIER" = sourcify ]; then
-  echo "  ${B}Proof from Sourcify${N} ${DIM}(read back from sourcify.dev; the links open the explorer)${N}"
+  step 3 "Proof" "Read back from sourcify.dev: contract name, full address and explorer link."
 else
-  echo "  ${B}Proof from the explorer${N} ${DIM}(read back from ${EXPLORER#https://})${N}"
+  step 3 "Proof" "Read back from ${EXPLORER#https://}: contract name, full address and explorer link."
 fi
-proven=0
+proven=0; MATCHES=(); last_mod=""
 for idx in "${!ADDRS[@]}"; do
   a="${ADDRS[$idx]}"; v=""
   for t in 1 2 3 4 5; do
@@ -223,11 +259,20 @@ for idx in "${!ADDRS[@]}"; do
     [ "$v" = full ] && break; sleep 2
   done
   case "$v" in
-    full) mark="$OK"; match="${G}exact match${N}  "; proven=$((proven + 1)) ;;
-    partial|verified) mark="$OK"; match="${Y}partial match${N}"; proven=$((proven + 1)) ;;
-    *) mark="$BAD"; match="${R}not verified${N} " ;;
+    full) mark="$OK"; match="${G}exact match${N}"; MATCHES+=("exact match"); proven=$((proven + 1)) ;;
+    partial|verified) mark="$OK"; match="${Y}partial match${N}"; MATCHES+=("partial match"); proven=$((proven + 1)) ;;
+    *) mark="$BAD"; match="${R}not verified${N}"; MATCHES+=("not verified") ;;
   esac
-  printf "  %s %2d  %-36s %s  %s\n" "$mark" "$((idx + 1))" "${LABELS[$idx]}" "$match" "$(hyperlink "$(link "$a")")"
+  if [ "${MODS[$idx]}" != "$last_mod" ]; then
+    last_mod="${MODS[$idx]}"
+    echo "  ${C}${B}${last_mod}${N}"
+  fi
+  # pad by the visible text: colour codes would otherwise count toward the column width
+  vis="${NAMES[$idx]} · ${ROLES[$idx]}"
+  printf "  %s ${B}%s${N} ${DIM}· %s${N}%*s%s\n" "$mark" "${NAMES[$idx]}" "${ROLES[$idx]}" $((44 - ${#vis})) "" "$match"
+  echo "      ${DIM}Address ${N} ${ADDRS[$idx]}"
+  echo "      ${DIM}Explorer${N} $(hyperlink "$(link "${ADDRS[$idx]}")")"
+  breathe
 done
 
 mkdir -p "$ROOT/docs/verification"
@@ -236,36 +281,41 @@ mkdir -p "$ROOT/docs/verification"
   echo
   echo "Chain ID ${CHAIN}. Explorer: ${EXPLORER}. Verified with \`bash scripts/verify-contracts.sh ${NETWORK}\` on $(date -u +%Y-%m-%d)."
   echo
-  echo "| # | Contract | Address | Explorer |"
-  echo "|---|---|---|---|"
+  echo "| # | Module | Contract | Role | Address | Explorer | Match |"
+  echo "|---|---|---|---|---|---|---|"
   for idx in "${!ADDRS[@]}"; do
-    echo "| $((idx + 1)) | ${LABELS[$idx]} | \`${ADDRS[$idx]}\` | [source code]($(link "${ADDRS[$idx]}")) |"
+    echo "| $((idx + 1)) | ${MODS[$idx]} | ${NAMES[$idx]} | ${ROLES[$idx]} | \`${ADDRS[$idx]}\` | [source code]($(link "${ADDRS[$idx]}")) | ${MATCHES[$idx]} |"
   done
 } >"$ROOT/docs/verification/${NETWORK}.md"
 
 echo
-echo "  ${DIM}────────────────────────────────────────────────────────────${N}"
+echo "  ${DIM}────────────────────────────────────────────────────────────────${N}"
 if [ "$proven" -eq "$TOTAL" ]; then
   echo "  ${G}${B}✓ ${proven} of ${TOTAL} contracts verified on ${NAME}${N}"
 else
-  echo "  ${Y}${B}${proven} of ${TOTAL} contracts verified on ${NAME}${N} ${DIM}(${failed} failed)${N}"
+  echo "  ${Y}${B}${proven} of ${TOTAL} contracts verified on ${NAME}${N} ${DIM}(${failed} still open)${N}"
 fi
-echo "  ${DIM}Links saved to docs/verification/${NETWORK}.md${N}"
+echo "  ${DIM}Saved to docs/verification/${NETWORK}.md${N}"
 echo
 
-# ------------------------------------------------------------------ open on the explorer
+# ------------------------------------------------------------------ 4 explore
 
 if [ "$TTY" = 1 ]; then
+  step 4 "Explore" "Pick a contract to open its verified source code on the explorer."
+  for idx in "${!ADDRS[@]}"; do
+    printf "  ${C}%2d${N}  %-30s ${DIM}%s${N}\n" "$((idx + 1))" "${NAMES[$idx]}" "${ROLES[$idx]}"
+  done
+  echo
   opener="$(command -v xdg-open || command -v open || true)"
   while :; do
-    printf "  ${C}?${N} Open a contract on the explorer ${DIM}[1-%d, Enter = 1, q = quit]${N} " "$TOTAL"
+    printf "  ${C}?${N} Open a contract ${DIM}[1-%d, Enter = 1, q = quit]${N} " "$TOTAL"
     read -r pick
     [ "$pick" = q ] || [ "$pick" = Q ] && break
     [ -z "$pick" ] && pick=1
     if [[ "$pick" =~ ^[0-9]+$ ]] && [ "$pick" -ge 1 ] && [ "$pick" -le "$TOTAL" ]; then
-      url="$(link "${ADDRS[$((pick - 1))]}")"
-      echo "    ${LABELS[$((pick - 1))]}  ${url}"
-      [ -n "$opener" ] && "$opener" "$url" >/dev/null 2>&1 &
+      k=$((pick - 1))
+      echo "    ${B}${NAMES[$k]}${N} ${DIM}· ${ROLES[$k]}${N}  $(hyperlink "$(link "${ADDRS[$k]}")")"
+      [ -n "$opener" ] && "$opener" "$(link "${ADDRS[$k]}")" >/dev/null 2>&1 &
     fi
   done
   echo
