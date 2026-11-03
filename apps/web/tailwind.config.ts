@@ -10,7 +10,6 @@ const config: Config = {
   darkMode: "class",
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
-    container: { center: true, padding: { DEFAULT: "1rem", md: "1.5rem", lg: "2rem" }, screens: { "2xl": "1360px" } },
     extend: {
       colors: {
         bg: { DEFAULT: c("bg"), elevated: c("bg-elevated") },
@@ -96,6 +95,8 @@ const config: Config = {
       },
     },
   },
+  // .container is defined in globals.css: near full width on desktop instead of stepped max-widths
+  corePlugins: { container: false },
   plugins: [animate],
 };
 

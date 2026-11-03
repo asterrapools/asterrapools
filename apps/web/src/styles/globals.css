@@ -56,6 +56,22 @@
 }
 
 @layer components {
+  /* Near full width on every screen: only the side gutter grows, and very wide monitors stop at 2240px */
+  .container {
+    width: 100%;
+    max-width: 2240px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 768px) {
+    .container { padding-inline: 1.5rem; }
+  }
+  @media (min-width: 1024px) {
+    .container { padding-inline: 2.5rem; }
+  }
+  @media (min-width: 1536px) {
+    .container { padding-inline: 3.5rem; }
+  }
   .eyebrow {
     @apply font-mono text-eyebrow uppercase text-muted;
   }

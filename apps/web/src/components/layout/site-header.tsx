@@ -74,7 +74,7 @@ export function SiteHeader() {
   const MORE_NAV = navFor(ALL_MORE_NAV, useNetwork(), venues);
   return (
     <>
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-bg/80 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/60">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-bg/90">
       <div className="container flex h-14 items-center gap-6">
         <Logo />
         <nav className="mx-auto hidden items-center gap-0.5 rounded-full border bg-surface/50 p-1 lg:flex" aria-label="Main">

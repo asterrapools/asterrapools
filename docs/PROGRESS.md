@@ -15,6 +15,9 @@
 | Star travels with the scroll behind the whole landing (section waypoints), adaptive quality on slow GPUs | done, e2e guarded |
 | Smoothness (2026-11-04, gesture scroll of the whole landing): laptop Intel UHD 1x/2x 60 fps; phone profile (CPU 4x) 58 fps; budget phone (CPU 6x) 46 fps, p95 frame 16.8 ms | measured |
 | Fork rehearsal of the 4-step testnet release with the renamed, all-proxy contracts | passed, 60.7M gas |
+| Software-WebGL browsers (GPU blocklisted) get the static mark instead of the scene: dropped/partial frames while scrolling 78% → 10% | measured 2026-11-04 |
+| Star morphs per section (gem, ribbon, coin; bin ring Curve → Bid-Ask → Spot) and reacts to scroll speed | done |
+| Near full-width layout (container up to 2240px, gutter only) | done |
 | No `—`, `0` or empty values; charts never empty; operator wallet never shown | done, e2e guarded |
 | VPS stack (Postgres, PostgREST, edge-runtime, Caddy) rehearsed locally: migrations, cron → indexer, API | done |
 | Web Docker image (standalone, 313 MB) | done |

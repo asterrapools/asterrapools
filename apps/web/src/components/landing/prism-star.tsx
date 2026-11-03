@@ -9,18 +9,28 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
  * direction (many venues, one route) and a ring of DLMM-style bins orbiting it. Pointer tilts the star, a click on
  * empty page space pulses the streams. Renders only while visible; with reduced motion it draws one still frame.
  *
- * The canvas sits fixed behind the whole landing page and the star travels with the scroll: every element with
- * `data-star="x y scale opacity"` (x, y in -1..1 of the viewport) is a waypoint, `data-star-m` overrides it on
- * portrait screens. The star holds each section's pose and glides to the next one while that section rises through
- * the lower half of the viewport.
+ * The canvas sits fixed behind the whole landing page and the star travels and changes shape with the scroll:
+ * every element with `data-star="x y scale opacity [inflate round twist ring]"` is a waypoint (x, y in -1..1 of the
+ * viewport; inflate 0..1 puffs the flat star into a gem, round 0..1 pulls it toward a coin, twist in radians wrings it
+ * like a ribbon, ring 0..2 reshapes the bin ring from Curve to Bid-Ask to Spot). `data-star-m` overrides the first
+ * four on portrait screens. The star holds each section's pose and morphs into the next one while that section rises
+ * through the lower half of the viewport; scroll speed adds a passing twist and squash on top.
  */
 
-type Pose = [x: number, y: number, s: number, o: number];
-const HOLD: Pose = [0.45, 0, 1, 1];
+type Pose = [x: number, y: number, s: number, o: number, inflate: number, round: number, twist: number, ring: number];
+const HOLD: Pose = [0.45, 0, 1, 1, 0, 0, 0, 0];
 
-function parsePose(v: string | undefined): Pose | null {
+function parsePose(v: string | undefined): number[] | null {
   const n = v?.trim().split(/\s+/).map(Number);
-  return n && n.length === 4 && n.every(Number.isFinite) ? (n as Pose) : null;
+  return n && n.length >= 4 && n.length <= 8 && n.every(Number.isFinite) ? n : null;
+}
+
+/** Bin ring heights for a ring shape between 0 (Curve) .. 1 (Bid-Ask) .. 2 (Spot), d = bins from the active bin. */
+function binHeight(d: number, ring: number) {
+  const curve = 0.08 + 0.55 * Math.exp(-(d * d) / 120);
+  const bidask = 0.08 + 0.55 * (1 - Math.exp(-(d * d) / 260));
+  const spot = 0.3;
+  return ring <= 1 ? curve + (bidask - curve) * ring : bidask + (spot - bidask) * (ring - 1);
 }
 
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -127,7 +137,16 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     if (!el) return;
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+      // failIfMajorPerformanceCaveat: no software rendering (a GPU-blocklisted browser); the static mark is smoother
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: true });
+      // not every browser honours the flag (headless Chrome hands out SwiftShader anyway), so check the renderer too
+      const gl = renderer.getContext();
+      const info = gl.getExtension("WEBGL_debug_renderer_info");
+      const name = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+      if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(name)) {
+        renderer.dispose();
+        throw new Error(`software WebGL: ${name}`);
+      }
     } catch {
       // WebGL unavailable: swap in the static mark on the next frame
       const id = requestAnimationFrame(() => setFailed(true));
@@ -137,7 +156,7 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     let cleanupExtra = () => {};
     const small = window.innerWidth < 768;
     // the canvas covers the viewport, so cap the pixel ratio harder than a hero-sized canvas would need
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, small ? 1.25 : 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
     renderer.toneMapping = THREE.NeutralToneMapping;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     el.appendChild(renderer.domElement);
@@ -184,6 +203,38 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
       sheen: 0.4,
       sheenColor: new THREE.Color("#8b3cff"),
     });
+    // shape morph in the vertex shader (cheap: a few ALU per vertex, no new geometry)
+    const morph = { uInflate: { value: 0 }, uRound: { value: 0 }, uTwist: { value: 0 } };
+    starMat.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, morph);
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          "#include <common>",
+          `#include <common>
+          uniform float uInflate; uniform float uRound; uniform float uTwist;
+          vec3 asterraMorph(vec3 p) {
+            float r = length(p.xy);
+            // round: concave edges pushed out toward a coin
+            float rr = mix(r, 1.25 * pow(clamp(r / 1.55, 0.0, 1.0), 0.35), uRound);
+            p.xy *= rr / max(r, 1e-4);
+            // inflate: a pillow bulge, thickest at the centre
+            float k = 1.0 - pow(clamp(r / 1.55, 0.0, 1.0), 2.0);
+            p.z += sign(p.z) * uInflate * 0.85 * k;
+            // twist around the vertical axis, by height
+            float a = uTwist * p.y * 0.6;
+            p.xz = mat2(cos(a), -sin(a), sin(a), cos(a)) * p.xz;
+            return p;
+          }`,
+        )
+        .replace(
+          "#include <beginnormal_vertex>",
+          `#include <beginnormal_vertex>
+          objectNormal = normalize(objectNormal + vec3(position.xy * 0.7 * uInflate * sign(objectNormal.z), 0.0));
+          float an = uTwist * position.y * 0.6;
+          objectNormal.xz = mat2(cos(an), -sin(an), sin(an), cos(an)) * objectNormal.xz;`,
+        )
+        .replace("#include <begin_vertex>", "#include <begin_vertex>\n          transformed = asterraMorph(transformed);");
+    };
     const star = new THREE.Mesh(geo, starMat);
     const rig = new THREE.Group();
     rig.add(star);
@@ -204,13 +255,24 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     const q = new THREE.Quaternion();
     const col = new THREE.Color();
     const prismCols = PRISM.map((c) => new THREE.Color(c));
+    const zAxis = new THREE.Vector3(0, 0, 1);
+    const at = new THREE.Vector3();
+    const size = new THREE.Vector3(1, 1, 1);
+    let ringShape = -1;
+    const shapeRing = (ring: number) => {
+      if (Math.abs(ring - ringShape) < 0.004) return;
+      ringShape = ring;
+      for (let i = 0; i < BINS; i++) {
+        const a = (i / BINS) * Math.PI * 2;
+        q.setFromAxisAngle(zAxis, a - Math.PI / 2);
+        size.y = binHeight(Math.min(i, BINS - i), ring);
+        m.compose(at.set(Math.cos(a) * 2.45, Math.sin(a) * 2.45, 0), q, size);
+        bins.setMatrixAt(i, m);
+      }
+      bins.instanceMatrix.needsUpdate = true;
+    };
+    shapeRing(0);
     for (let i = 0; i < BINS; i++) {
-      const a = (i / BINS) * Math.PI * 2;
-      const d = Math.min(i, BINS - i);
-      const h = 0.08 + 0.55 * Math.exp(-(d * d) / 120);
-      q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), a - Math.PI / 2);
-      m.compose(new THREE.Vector3(Math.cos(a) * 2.45, Math.sin(a) * 2.45, 0), q, new THREE.Vector3(1, h, 1));
-      bins.setMatrixAt(i, m);
       const f = (i / BINS) * 3;
       col.copy(prismCols[Math.floor(f)]!).lerp(prismCols[Math.min(3, Math.floor(f) + 1)]!, f % 1);
       bins.setColorAt(i, col);
@@ -221,7 +283,7 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     root.add(ring);
 
     // ---- liquidity streams
-    const N = small ? 1400 : 2600;
+    const N = small ? 1200 : 1900;
     const sGeo = new THREE.BufferGeometry();
     const aAngle = new Float32Array(N);
     const aPhase = new Float32Array(N);
@@ -303,8 +365,10 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
         .map((n) => {
           const desk = parsePose(n.dataset.star);
           if (!desk) return null;
+          const full = HOLD.map((v, k) => desk[k] ?? (k < 4 ? v : 0)) as Pose;
           // portrait default: copy spans the full width, so the star peeks in smaller and dimmer behind it
-          const pose = portrait ? (parsePose(n.dataset.starM) ?? ([desk[0] * 0.9, desk[1], desk[2] * 0.6, desk[3] * 0.4] as Pose)) : desk;
+          const m4 = parsePose(n.dataset.starM) ?? [full[0] * 0.9, full[1], full[2] * 0.6, full[3] * 0.4];
+          const pose = portrait ? (full.map((v, k) => (k < 4 ? m4[k]! : v)) as Pose) : full;
           return { top: n.getBoundingClientRect().top + window.scrollY, pose };
         })
         .filter((m): m is { top: number; pose: Pose } => m !== null)
@@ -324,6 +388,8 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
       return a.pose.map((v, k) => v + (b.pose[k]! - v) * t) as Pose;
     };
     const pose: Pose = [...HOLD];
+    let lastScroll = window.scrollY;
+    let speed = 0;
     let poseReady = false;
     let shownOpacity = -1;
 
@@ -365,7 +431,16 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
       const goal = want();
       const k = poseReady && !reduced ? Math.min(1, dt * 4.5) : 1;
       poseReady = true;
-      for (let j = 0; j < 4; j++) pose[j] = pose[j]! + (goal[j]! - pose[j]!) * k;
+      for (let j = 0; j < pose.length; j++) pose[j] = pose[j]! + (goal[j]! - pose[j]!) * k;
+      // scroll speed: a passing twist and squash that settle when the page stops
+      const sy = window.scrollY;
+      const v = dt > 0 ? (sy - lastScroll) / dt : 0;
+      lastScroll = sy;
+      speed += (Math.max(-1, Math.min(1, v / 2500)) - speed) * Math.min(1, dt * 6);
+      morph.uInflate.value = pose[4];
+      morph.uRound.value = pose[5];
+      morph.uTwist.value = pose[6] + speed * 1.4;
+      shapeRing(pose[7]);
       const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
       root.position.set(pose[0] * halfH * camera.aspect, pose[1] * halfH, 0);
       root.scale.setScalar(pose[2]);
@@ -376,7 +451,7 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
       rig.rotation.y += (target.x * 0.55 + Math.sin(time * 0.4) * 0.25 - rig.rotation.y) * 0.06;
       rig.rotation.x += (target.y * 0.35 - rig.rotation.x) * 0.06;
       star.rotation.z = Math.sin(time * 0.3) * 0.05;
-      star.scale.setScalar(1 + pulse * 0.06);
+      star.scale.set(1 + pulse * 0.06, (1 + pulse * 0.06) * (1 - Math.abs(speed) * 0.12), 1 + pulse * 0.06);
       ring.rotation.z = time * 0.12;
       streams.rotation.z = time * 0.03;
       renderer.render(scene, camera);
@@ -454,7 +529,7 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
 
   if (failed) {
     // eslint-disable-next-line @next/next/no-img-element -- static fallback when WebGL is unavailable
-    return <img src="/brand/asterra-mark-512.png" alt="" className={className} style={{ objectFit: "contain" }} />;
+    return <img src="/brand/asterra-mark-512.png" alt="" className={className} style={{ objectFit: "contain", padding: "18vmin", opacity: 0.35 }} />;
   }
   return <div ref={host} className={className} aria-hidden />;
 }
