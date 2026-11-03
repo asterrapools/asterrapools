@@ -3,11 +3,12 @@ pragma solidity 0.8.26;
 
 import {Script, console2} from "forge-std/Script.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {AsterraHub} from "../../src/core/AsterraHub.sol";
 import {IAsterraHub} from "../../src/interfaces/IAsterraHub.sol";
 import {IAsterraRouter} from "../../src/interfaces/IAsterraPeriphery.sol";
 import {AsterraLaunchpad} from "../../src/launchpad/AsterraLaunchpad.sol";
-import {LaunchToken} from "../../src/launchpad/LaunchToken.sol";
+import {AsterraLaunchToken} from "../../src/launchpad/AsterraLaunchToken.sol";
 import {AsterraToken} from "../../src/token/AsterraToken.sol";
 import {AsterraBuyback} from "../../src/buyback/AsterraBuyback.sol";
 
@@ -38,11 +39,11 @@ contract DeployLaunchpadBuyback is Script {
                 address(new AsterraLaunchpad()),
                 abi.encodeCall(
                     AsterraLaunchpad.initialize,
-                    (DEPLOYER, IAsterraHub(hub), weth, address(new LaunchToken()), POOL_MANAGER, positions, hook)
+                    (DEPLOYER, IAsterraHub(hub), weth, address(new UpgradeableBeacon(address(new AsterraLaunchToken()), DEPLOYER)), POOL_MANAGER, positions, hook)
                 )
             )
         );
-        aster = address(new AsterraToken(DEPLOYER));
+        aster = address(new ERC1967Proxy(address(new AsterraToken()), abi.encodeCall(AsterraToken.initialize, (DEPLOYER, DEPLOYER))));
         buyback = address(
             new ERC1967Proxy(
                 address(new AsterraBuyback()),

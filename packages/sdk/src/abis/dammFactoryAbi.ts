@@ -301,7 +301,7 @@ export const dammFactoryAbi = [
       {
         "name": "v",
         "type": "tuple",
-        "internalType": "struct DAMMFactory.VolatilityDefaults",
+        "internalType": "struct AsterraDAMMFactory.VolatilityDefaults",
         "components": [
           {
             "name": "filterPeriod",
@@ -373,7 +373,7 @@ export const dammFactoryAbi = [
       {
         "name": "",
         "type": "tuple",
-        "internalType": "struct DAMMFactory.VolatilityDefaults",
+        "internalType": "struct AsterraDAMMFactory.VolatilityDefaults",
         "components": [
           {
             "name": "filterPeriod",

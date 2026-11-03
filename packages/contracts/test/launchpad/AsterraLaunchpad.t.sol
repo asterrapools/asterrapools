@@ -12,8 +12,15 @@ import {IAsterraHub, Venue} from "../../src/interfaces/IAsterraHub.sol";
 import {IAsterraLaunchpad} from "../../src/interfaces/IAsterraPools.sol";
 import {IAsterraPositions} from "../../src/interfaces/IAsterraPeriphery.sol";
 import {AsterraLaunchpad} from "../../src/launchpad/AsterraLaunchpad.sol";
-import {LaunchToken} from "../../src/launchpad/LaunchToken.sol";
+import {AsterraLaunchToken} from "../../src/launchpad/AsterraLaunchToken.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {MockWETH, MockPoolManager, MockPositions} from "./mocks/LaunchpadMocks.sol";
+
+contract AsterraLaunchTokenV2 is AsterraLaunchToken {
+    function version() external pure returns (uint256) {
+        return 2;
+    }
+}
 
 contract AsterraLaunchpadV2 is AsterraLaunchpad {
     function version() external pure returns (uint256) {
@@ -27,6 +34,7 @@ contract AsterraLaunchpadTest is Test {
     MockWETH weth;
     MockPoolManager pm;
     MockPositions positions;
+    UpgradeableBeacon tokenBeacon;
 
     address owner = address(0xA11CE);
     address buyback = address(0xB0B);
@@ -50,7 +58,7 @@ contract AsterraLaunchpadTest is Test {
                                 owner,
                                 IAsterraHub(address(hub)),
                                 address(weth),
-                                address(new LaunchToken()),
+                                address(tokenBeacon = new UpgradeableBeacon(address(new AsterraLaunchToken()), owner)),
                                 address(pm),
                                 address(positions),
                                 hook
@@ -105,15 +113,28 @@ contract AsterraLaunchpadTest is Test {
         assertEq(l.virtualToken, 273_000_000e18);
         assertEq(l.virtualWeth, 1.5e18);
         assertEq(IERC20(token).balanceOf(address(lp)), 1_000_000_000e18);
-        assertEq(LaunchToken(token).symbol(), "MOON");
+        assertEq(AsterraLaunchToken(token).symbol(), "MOON");
         assertEq(lp.launchCount(), 1);
         IAsterraHub.PoolInfo memory info = hub.pool(bytes32(uint256(uint160(token))));
         assertEq(uint8(info.venue), uint8(Venue.LAUNCH));
         assertEq(info.pool, address(lp));
         assertEq(info.creator, creator);
-        // clones cannot be re-initialized
-        vm.expectRevert(LaunchToken.AlreadyInitialized.selector);
-        LaunchToken(token).initialize("x", "x", address(this));
+        // proxies cannot be re-initialized
+        vm.expectRevert(AsterraLaunchToken.AlreadyInitialized.selector);
+        AsterraLaunchToken(token).initialize("x", "x", address(this));
+    }
+
+    function test_launchTokensUpgradeThroughTheBeacon() public {
+        address token = _create();
+        assertEq(lp.tokenBeacon(), address(tokenBeacon));
+        address v2 = address(new AsterraLaunchTokenV2());
+        vm.expectRevert();
+        tokenBeacon.upgradeTo(v2); // only the owner
+        vm.prank(owner);
+        tokenBeacon.upgradeTo(v2);
+        assertEq(AsterraLaunchTokenV2(token).version(), 2);
+        assertEq(AsterraLaunchToken(token).symbol(), "MOON"); // state survives the upgrade
+        assertEq(IERC20(token).balanceOf(address(lp)), 1_000_000_000e18);
     }
 
     function test_createWithEthBuyRefundsNothingBelowThreshold() public {

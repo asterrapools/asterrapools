@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 // Venues follow the hub's on-chain gate (hub.isRegistrar(factory)). Testnet has DLMM and DAMM open.
 test("create pool offers the venues the hub has open", async ({ page }) => {

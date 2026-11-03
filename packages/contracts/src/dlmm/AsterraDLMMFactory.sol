@@ -7,14 +7,14 @@ import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol"
 import {IDLMMFactory} from "../interfaces/IAsterraPools.sol";
 import {IAsterraHub, Venue} from "../interfaces/IAsterraHub.sol";
 import {VolatilityFee} from "../libraries/VolatilityFee.sol";
-import {DLMMPool} from "./DLMMPool.sol";
+import {AsterraDLMMPool} from "./AsterraDLMMPool.sol";
 
-/// @title DLMMFactory
-/// @notice Permissionless creation of DLMM pools as BeaconProxy instances of one DLMMPool implementation.
+/// @title AsterraDLMMFactory
+/// @notice Permissionless creation of DLMM pools as BeaconProxy instances of one AsterraDLMMPool implementation.
 ///         Pools are registered in the AsterraHub (this factory must be a hub registrar).
 /// @dev UUPS proxy with ERC-7201 storage. The beacon is deployed separately and owned by the protocol owner,
 ///      so upgrading the beacon upgrades every pool at once.
-contract DLMMFactory is IDLMMFactory, UUPSUpgradeable, Ownable2StepUpgradeable {
+contract AsterraDLMMFactory is IDLMMFactory, UUPSUpgradeable, Ownable2StepUpgradeable {
     struct VolatilityDefaults {
         uint16 filterPeriod;
         uint16 decayPeriod;
@@ -94,7 +94,7 @@ contract DLMMFactory is IDLMMFactory, UUPSUpgradeable, Ownable2StepUpgradeable {
         address hub_ = $.hub;
         pool = address(
             new BeaconProxy{salt: key}(
-                $.beacon, abi.encodeCall(DLMMPool.initialize, (hub_, t0, t1, p.binStepBps, p.activeId, params))
+                $.beacon, abi.encodeCall(AsterraDLMMPool.initialize, (hub_, t0, t1, p.binStepBps, p.activeId, params))
             )
         );
         $.pools[key] = pool;
@@ -156,7 +156,7 @@ contract DLMMFactory is IDLMMFactory, UUPSUpgradeable, Ownable2StepUpgradeable {
     /// @notice Replace one pool's dynamic fee parameters (stepBps is forced to the pool's bin step).
     function setPoolFeeParams(address pool, VolatilityFee.Params calldata params) external onlyOwner {
         if (!_s().isPool[pool]) revert UnknownPool();
-        DLMMPool(pool).setFeeParams(params);
+        AsterraDLMMPool(pool).setFeeParams(params);
     }
 
     function _setDefaults(VolatilityDefaults memory d) private {

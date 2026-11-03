@@ -8,13 +8,13 @@ import {SqrtPriceMath} from "v4-core/libraries/SqrtPriceMath.sol";
 import {AsterraHub} from "../../src/core/AsterraHub.sol";
 import {IAsterraHub} from "../../src/interfaces/IAsterraHub.sol";
 import {IDAMMFactory} from "../../src/interfaces/IAsterraPools.sol";
-import {DAMMPool} from "../../src/damm/DAMMPool.sol";
-import {DAMMFactory} from "../../src/damm/DAMMFactory.sol";
+import {AsterraDAMMPool} from "../../src/damm/AsterraDAMMPool.sol";
+import {AsterraDAMMFactory} from "../../src/damm/AsterraDAMMFactory.sol";
 import {MockERC20} from "./MockERC20.sol";
 
 /// @dev Random add / remove / swap / fee claim / protocol fee collection / time sequences on one DAMM pool.
 contract DAMMHandler is Test {
-    DAMMPool public pool;
+    AsterraDAMMPool public pool;
     MockERC20 public token0;
     MockERC20 public token1;
     address[4] public actors = [address(0xD1), address(0xD2), address(0xD3), address(0xD4)];
@@ -30,7 +30,7 @@ contract DAMMHandler is Test {
     uint256 public removes;
     uint256 public claims;
 
-    constructor(DAMMPool p, MockERC20 t0, MockERC20 t1) {
+    constructor(AsterraDAMMPool p, MockERC20 t0, MockERC20 t1) {
         (pool, token0, token1) = (p, t0, t1);
         for (uint256 i; i < actors.length; ++i) {
             token0.mint(actors[i], 1e36);
@@ -95,7 +95,7 @@ contract DAMMInvariantTest is Test {
     uint160 constant Q96 = 79228162514264337593543950336; // sqrt price 1
     uint128 constant MIN_LIQUIDITY = 1000;
 
-    DAMMPool pool;
+    AsterraDAMMPool pool;
     MockERC20 token0;
     MockERC20 token1;
     DAMMHandler handler;
@@ -104,11 +104,11 @@ contract DAMMInvariantTest is Test {
         address owner = address(0xA11CE);
         AsterraHub hub =
             AsterraHub(address(new ERC1967Proxy(address(new AsterraHub()), abi.encodeCall(AsterraHub.initialize, (owner)))));
-        UpgradeableBeacon beacon = new UpgradeableBeacon(address(new DAMMPool(IAsterraHub(address(hub)))), owner);
-        DAMMFactory factory = DAMMFactory(
+        UpgradeableBeacon beacon = new UpgradeableBeacon(address(new AsterraDAMMPool(IAsterraHub(address(hub)))), owner);
+        AsterraDAMMFactory factory = AsterraDAMMFactory(
             address(
                 new ERC1967Proxy(
-                    address(new DAMMFactory()), abi.encodeCall(DAMMFactory.initialize, (owner, IAsterraHub(address(hub)), address(beacon)))
+                    address(new AsterraDAMMFactory()), abi.encodeCall(AsterraDAMMFactory.initialize, (owner, IAsterraHub(address(hub)), address(beacon)))
                 )
             )
         );
@@ -121,7 +121,7 @@ contract DAMMInvariantTest is Test {
         MockERC20 b = new MockERC20("B", "B", 18);
         (token0, token1) = address(a) < address(b) ? (a, b) : (b, a);
         // concentrated range [0.25, 4] so swaps reach both edges
-        pool = DAMMPool(
+        pool = AsterraDAMMPool(
             factory.createPool(
                 IDAMMFactory.CreateParams(address(token0), address(token1), Q96, Q96 / 2, Q96 * 2, 3000, 50_000, 30_000, 1 days)
             )

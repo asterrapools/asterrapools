@@ -10,7 +10,7 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {FixedPointMathLib as FPM} from "solady/utils/FixedPointMathLib.sol";
 import {IDLMMLimitOrders, IDLMMPool, IDLMMFactory} from "../interfaces/IAsterraPools.sol";
 
-/// @title DLMMLimitOrders
+/// @title AsterraDLMMLimitOrders
 /// @notice Limit orders on Asterra DLMM pools. An order is single-sided liquidity in one bin, owned by this
 ///         contract on behalf of the order owner. It fills as the active bin crosses the order's bin.
 /// @dev A filled bin converts back if the price returns through it before the order is claimed: the order
@@ -18,7 +18,7 @@ import {IDLMMLimitOrders, IDLMMPool, IDLMMFactory} from "../interfaces/IAsterraP
 ///      lock in a fill for the owner with `claimFor`. Orders earn the bin's swap fees while they sit in it.
 ///      The first order (or deposit) in an empty bin locks the pool's MIN_SHARES dust.
 ///      Fee-on-transfer and rebasing tokens are not supported. UUPS proxy with ERC-7201 storage.
-contract DLMMLimitOrders is IDLMMLimitOrders, UUPSUpgradeable, Ownable2StepUpgradeable, ReentrancyGuardTransient {
+contract AsterraDLMMLimitOrders is IDLMMLimitOrders, UUPSUpgradeable, Ownable2StepUpgradeable, ReentrancyGuardTransient {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
 

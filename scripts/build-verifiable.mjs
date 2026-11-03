@@ -3,7 +3,7 @@
 // JSON input) and writes their creation code to packages/contracts/verifiable/<Name>.bin, which the deploy scripts use.
 //
 // Why: with via-IR, solc 0.8.26 output for some contracts depends on every file compiled in the same job (AST ids).
-// `forge build` compiles the whole project, scripts and tests included, so the deployed DLMMPool could only be
+// `forge build` compiles the whole project, scripts and tests included, so the deployed AsterraDLMMPool could only be
 // reproduced with a ~160-file package that takes over a minute to compile, and the explorer gives up. Deploying the
 // bytecode of the small package makes the deployed code and the verified code the same by construction.
 // The deploy wrappers (testnet-redeploy.sh, mainnet-deploy.sh) run this first, so the files always match the source.
@@ -15,7 +15,7 @@ import { join, resolve } from "node:path";
 const CONTRACTS = resolve("packages/contracts");
 const SOLC = join(homedir(), ".local/share/svm/0.8.26/solc-0.8.26");
 const OUT = join(CONTRACTS, "verifiable");
-const TARGETS = ["src/dlmm/DLMMPool.sol:DLMMPool"];
+const TARGETS = ["src/dlmm/AsterraDLMMPool.sol:AsterraDLMMPool"];
 
 mkdirSync(OUT, { recursive: true });
 for (const target of TARGETS) {

@@ -11,11 +11,11 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ILendingVault} from "../interfaces/IAsterraPeriphery.sol";
 import {IAsterraHub} from "../interfaces/IAsterraHub.sol";
 
-/// @title LendingVault
-/// @notice ERC-4626 vault over a USD stablecoin. Suppliers earn the interest paid by CreditManager borrowers.
+/// @title AsterraLendingVault
+/// @notice ERC-4626 vault over a USD stablecoin. Suppliers earn the interest paid by AsterraCreditManager borrowers.
 ///         Debt is tracked as debt shares that grow with a RAY borrow index; a kinked utilization curve sets the rate.
 ///         totalAssets = cash + borrows - protocol reserves. UUPS proxy, ERC-7201 storage.
-contract LendingVault is ILendingVault, ERC4626Upgradeable, UUPSUpgradeable, Ownable2StepUpgradeable, ReentrancyGuardTransient {
+contract AsterraLendingVault is ILendingVault, ERC4626Upgradeable, UUPSUpgradeable, Ownable2StepUpgradeable, ReentrancyGuardTransient {
     using SafeERC20 for IERC20;
     using Math for uint256;
 

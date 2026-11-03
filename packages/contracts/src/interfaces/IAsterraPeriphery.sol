@@ -111,7 +111,7 @@ interface IAsterraPositions {
     function nextTokenId() external view returns (uint256);
 }
 
-/// @notice USD-stable lending vault (ERC-4626) whose borrowers are only the CreditManager.
+/// @notice USD-stable lending vault (ERC-4626) whose borrowers are only the AsterraCreditManager.
 interface ILendingVault {
     event Borrowed(address indexed to, uint256 assets, uint256 debtShares);
     event Repaid(address indexed from, uint256 assets, uint256 debtShares);

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const PAGES = ["/", "/swap", "/pools", "/positions", "/faucet"];
 const OUT = "../../docs/ui-style/screens";

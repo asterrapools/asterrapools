@@ -2,13 +2,13 @@
 pragma solidity 0.8.26;
 
 import {Test} from "forge-std/Test.sol";
-import {LendingVault} from "../../src/credit/LendingVault.sol";
+import {AsterraLendingVault} from "../../src/credit/AsterraLendingVault.sol";
 import {MockToken} from "./mocks/MockToken.sol";
 import {CreditBase} from "./LendingVault.t.sol";
 
 /// @dev Acts as the vault's credit manager and drives random deposit / withdraw / borrow / repay / time sequences.
 contract VaultHandler is Test {
-    LendingVault public vault;
+    AsterraLendingVault public vault;
     MockToken public usd;
     address[3] public actors = [address(0xA1), address(0xA2), address(0xA3)];
 
@@ -19,7 +19,7 @@ contract VaultHandler is Test {
     bool public priceDecreased;
     uint256 public time;
 
-    constructor(LendingVault v, MockToken u) {
+    constructor(AsterraLendingVault v, MockToken u) {
         (vault, usd) = (v, u);
         usd.approve(address(vault), type(uint256).max);
         for (uint256 i; i < 3; ++i) {
@@ -116,7 +116,7 @@ contract VaultHandler is Test {
 /// forge-config: default.invariant.runs = 128
 /// forge-config: default.invariant.depth = 200
 contract LendingVaultInvariantTest is CreditBase {
-    LendingVault vault;
+    AsterraLendingVault vault;
     MockToken usd;
     VaultHandler handler;
 

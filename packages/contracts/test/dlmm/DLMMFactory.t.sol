@@ -4,19 +4,19 @@ pragma solidity 0.8.26;
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IDLMMFactory} from "../../src/interfaces/IAsterraPools.sol";
 import {IAsterraHub} from "../../src/interfaces/IAsterraHub.sol";
-import {DLMMPool} from "../../src/dlmm/DLMMPool.sol";
-import {DLMMFactory} from "../../src/dlmm/DLMMFactory.sol";
+import {AsterraDLMMPool} from "../../src/dlmm/AsterraDLMMPool.sol";
+import {AsterraDLMMFactory} from "../../src/dlmm/AsterraDLMMFactory.sol";
 import {BinMath} from "../../src/dlmm/BinMath.sol";
 import {VolatilityFee} from "../../src/libraries/VolatilityFee.sol";
 import {DLMMBase, TestToken} from "./DLMMBase.t.sol";
 
-contract DLMMFactoryV2 is DLMMFactory {
+contract DLMMFactoryV2 is AsterraDLMMFactory {
     function version() external pure returns (uint256) {
         return 2;
     }
 }
 
-contract DLMMPoolV2 is DLMMPool {
+contract DLMMPoolV2 is AsterraDLMMPool {
     function version() external pure returns (uint256) {
         return 2;
     }
@@ -38,7 +38,7 @@ contract DLMMFactoryTest is DLMMBase {
         uint16[6] memory steps = [uint16(1), 5, 10, 25, 50, 100];
         for (uint256 i; i < 6; ++i) assertTrue(factory.isBinStepAllowed(steps[i]));
         assertFalse(factory.isBinStepAllowed(2));
-        DLMMFactory.VolatilityDefaults memory d = factory.volatilityDefaults();
+        AsterraDLMMFactory.VolatilityDefaults memory d = factory.volatilityDefaults();
         assertEq(d.filterPeriod, 30);
         assertEq(d.decayPeriod, 600);
     }
@@ -47,7 +47,7 @@ contract DLMMFactoryTest is DLMMBase {
         vm.expectRevert();
         factory.initialize(address(this), address(hub), address(beacon));
         // the implementation is locked too
-        DLMMFactory impl = new DLMMFactory();
+        AsterraDLMMFactory impl = new AsterraDLMMFactory();
         vm.expectRevert();
         impl.initialize(address(this), address(hub), address(beacon));
     }
@@ -58,12 +58,12 @@ contract DLMMFactoryTest is DLMMBase {
         (address lo, address hi) = address(x) < address(y) ? (address(x), address(y)) : (address(y), address(x));
         vm.prank(trader);
         address p = factory.createPool(_params(hi, lo, 10, -1234));
-        assertEq(DLMMPool(p).token0(), lo);
-        assertEq(DLMMPool(p).token1(), hi);
-        assertEq(DLMMPool(p).activeId(), -1234);
-        assertEq(DLMMPool(p).binStepBps(), 10);
-        assertEq(DLMMPool(p).feeParams().stepBps, 10);
-        assertEq(DLMMPool(p).feeParams().baseFee, BASE_FEE);
+        assertEq(AsterraDLMMPool(p).token0(), lo);
+        assertEq(AsterraDLMMPool(p).token1(), hi);
+        assertEq(AsterraDLMMPool(p).activeId(), -1234);
+        assertEq(AsterraDLMMPool(p).binStepBps(), 10);
+        assertEq(AsterraDLMMPool(p).feeParams().stepBps, 10);
+        assertEq(AsterraDLMMPool(p).feeParams().baseFee, BASE_FEE);
         assertEq(factory.getPool(lo, hi, 10), p);
         assertEq(factory.getPool(hi, lo, 10), p);
         assertEq(factory.getPool(lo, hi, 25), address(0));
@@ -88,13 +88,13 @@ contract DLMMFactoryTest is DLMMBase {
     }
 
     function test_createPoolRejects() public {
-        vm.expectRevert(DLMMFactory.PoolExists.selector);
+        vm.expectRevert(AsterraDLMMFactory.PoolExists.selector);
         factory.createPool(_params(address(token1), address(token0), STEP, 0));
-        vm.expectRevert(DLMMFactory.IdenticalTokens.selector);
+        vm.expectRevert(AsterraDLMMFactory.IdenticalTokens.selector);
         factory.createPool(_params(address(token0), address(token0), STEP, 0));
-        vm.expectRevert(DLMMFactory.ZeroAddress.selector);
+        vm.expectRevert(AsterraDLMMFactory.ZeroAddress.selector);
         factory.createPool(_params(address(0), address(token0), STEP, 0));
-        vm.expectRevert(DLMMFactory.BinStepNotAllowed.selector);
+        vm.expectRevert(AsterraDLMMFactory.BinStepNotAllowed.selector);
         factory.createPool(_params(address(token0), address(token1), 7, 0));
         // active id outside the price range
         vm.expectRevert(BinMath.PriceOutOfRange.selector);
@@ -119,18 +119,18 @@ contract DLMMFactoryTest is DLMMBase {
         vm.startPrank(owner);
         factory.setBinStep(7, true);
         assertTrue(factory.isBinStepAllowed(7));
-        vm.expectRevert(DLMMFactory.BinStepNotAllowed.selector);
+        vm.expectRevert(AsterraDLMMFactory.BinStepNotAllowed.selector);
         factory.setBinStep(0, true);
-        factory.setVolatilityDefaults(DLMMFactory.VolatilityDefaults(10, 100, 2500, 20_000, 100_000));
+        factory.setVolatilityDefaults(AsterraDLMMFactory.VolatilityDefaults(10, 100, 2500, 20_000, 100_000));
         vm.expectRevert(VolatilityFee.InvalidParams.selector);
-        factory.setVolatilityDefaults(DLMMFactory.VolatilityDefaults(200, 100, 2500, 20_000, 100_000));
+        factory.setVolatilityDefaults(AsterraDLMMFactory.VolatilityDefaults(200, 100, 2500, 20_000, 100_000));
         VolatilityFee.Params memory fp = pool.feeParams();
-        vm.expectRevert(DLMMFactory.UnknownPool.selector);
+        vm.expectRevert(AsterraDLMMFactory.UnknownPool.selector);
         factory.setPoolFeeParams(address(0x1234), fp);
         vm.stopPrank();
         address p = factory.createPool(_params(address(token0), address(token1), 7, 0));
-        assertEq(DLMMPool(p).feeParams().filterPeriod, 10);
-        assertEq(DLMMPool(p).feeParams().control, 20_000);
+        assertEq(AsterraDLMMPool(p).feeParams().filterPeriod, 10);
+        assertEq(AsterraDLMMPool(p).feeParams().control, 20_000);
     }
 
     function test_factoryUpgradeKeepsState() public {
@@ -181,10 +181,10 @@ contract DLMMFactoryTest is DLMMBase {
 
     function test_proxyIsolation() public {
         // a second factory proxy has its own namespaced storage
-        DLMMFactory f2 = DLMMFactory(
+        AsterraDLMMFactory f2 = AsterraDLMMFactory(
             address(
                 new ERC1967Proxy(
-                    address(new DLMMFactory()), abi.encodeCall(DLMMFactory.initialize, (owner, address(hub), address(beacon)))
+                    address(new AsterraDLMMFactory()), abi.encodeCall(AsterraDLMMFactory.initialize, (owner, address(hub), address(beacon)))
                 )
             )
         );

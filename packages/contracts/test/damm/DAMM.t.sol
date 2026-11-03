@@ -8,20 +8,20 @@ import {TickMath} from "v4-core/libraries/TickMath.sol";
 import {AsterraHub} from "../../src/core/AsterraHub.sol";
 import {IAsterraHub} from "../../src/interfaces/IAsterraHub.sol";
 import {IDAMMFactory, IAsterraPool} from "../../src/interfaces/IAsterraPools.sol";
-import {DAMMPool} from "../../src/damm/DAMMPool.sol";
-import {DAMMFactory} from "../../src/damm/DAMMFactory.sol";
+import {AsterraDAMMPool} from "../../src/damm/AsterraDAMMPool.sol";
+import {AsterraDAMMFactory} from "../../src/damm/AsterraDAMMFactory.sol";
 import {VolatilityFee} from "../../src/libraries/VolatilityFee.sol";
 import {MockERC20} from "./MockERC20.sol";
 
-contract DAMMPoolV2 is DAMMPool {
-    constructor(IAsterraHub h) DAMMPool(h) {}
+contract DAMMPoolV2 is AsterraDAMMPool {
+    constructor(IAsterraHub h) AsterraDAMMPool(h) {}
 
     function version() external pure returns (uint256) {
         return 2;
     }
 }
 
-contract DAMMFactoryV2 is DAMMFactory {
+contract DAMMFactoryV2 is AsterraDAMMFactory {
     function version() external pure returns (uint256) {
         return 2;
     }
@@ -30,10 +30,10 @@ contract DAMMFactoryV2 is DAMMFactory {
 contract DAMMTest is Test {
     AsterraHub hub;
     UpgradeableBeacon beacon;
-    DAMMFactory factory;
+    AsterraDAMMFactory factory;
     MockERC20 token0;
     MockERC20 token1;
-    DAMMPool pool;
+    AsterraDAMMPool pool;
 
     address owner = address(0xA11CE);
     address buyback = address(0xB0B);
@@ -46,12 +46,12 @@ contract DAMMTest is Test {
 
     function setUp() public {
         hub = AsterraHub(address(new ERC1967Proxy(address(new AsterraHub()), abi.encodeCall(AsterraHub.initialize, (owner)))));
-        beacon = new UpgradeableBeacon(address(new DAMMPool(IAsterraHub(address(hub)))), owner);
-        factory = DAMMFactory(
+        beacon = new UpgradeableBeacon(address(new AsterraDAMMPool(IAsterraHub(address(hub)))), owner);
+        factory = AsterraDAMMFactory(
             address(
                 new ERC1967Proxy(
-                    address(new DAMMFactory()),
-                    abi.encodeCall(DAMMFactory.initialize, (owner, IAsterraHub(address(hub)), address(beacon)))
+                    address(new AsterraDAMMFactory()),
+                    abi.encodeCall(AsterraDAMMFactory.initialize, (owner, IAsterraHub(address(hub)), address(beacon)))
                 )
             )
         );
@@ -70,9 +70,9 @@ contract DAMMTest is Test {
 
     function _create(uint160 sqrtP, uint160 lower, uint160 upper, uint24 launchStart, uint32 launchDur)
         internal
-        returns (DAMMPool)
+        returns (AsterraDAMMPool)
     {
-        return DAMMPool(
+        return AsterraDAMMPool(
             factory.createPool(
                 IDAMMFactory.CreateParams(
                     address(token0), address(token1), sqrtP, lower, upper, BASE_FEE, MAX_FEE, launchStart, launchDur
@@ -86,20 +86,20 @@ contract DAMMTest is Test {
         token1.mint(who, 1e30);
     }
 
-    function _approve(address who, DAMMPool p) internal {
+    function _approve(address who, AsterraDAMMPool p) internal {
         vm.startPrank(who);
         token0.approve(address(p), type(uint256).max);
         token1.approve(address(p), type(uint256).max);
         vm.stopPrank();
     }
 
-    function _add(DAMMPool p, address who, uint256 a0, uint256 a1) internal returns (uint256 shares) {
+    function _add(AsterraDAMMPool p, address who, uint256 a0, uint256 a1) internal returns (uint256 shares) {
         _approve(who, p);
         vm.prank(who);
         (shares,,) = p.addLiquidity(a0, a1, 0, who, block.timestamp);
     }
 
-    function _swap(DAMMPool p, address who, bool zeroForOne, uint256 amt) internal returns (uint256) {
+    function _swap(AsterraDAMMPool p, address who, bool zeroForOne, uint256 amt) internal returns (uint256) {
         _approve(who, p);
         vm.prank(who);
         return p.swapExactInput(zeroForOne ? address(token0) : address(token1), amt, 0, who, block.timestamp);
@@ -121,13 +121,13 @@ contract DAMMTest is Test {
     }
 
     function test_createRejects() public {
-        vm.expectRevert(DAMMFactory.InvalidTokens.selector);
+        vm.expectRevert(AsterraDAMMFactory.InvalidTokens.selector);
         factory.createPool(IDAMMFactory.CreateParams(address(token0), address(token0), SQRT_1, 0, 0, BASE_FEE, MAX_FEE, 0, 0));
-        vm.expectRevert(DAMMFactory.InvalidRange.selector);
+        vm.expectRevert(AsterraDAMMFactory.InvalidRange.selector);
         factory.createPool(
             IDAMMFactory.CreateParams(address(token0), address(token1), SQRT_1 * 2, 0, SQRT_1, BASE_FEE, MAX_FEE, 0, 0)
         );
-        vm.expectRevert(DAMMFactory.InvalidFee.selector);
+        vm.expectRevert(AsterraDAMMFactory.InvalidFee.selector);
         factory.createPool(IDAMMFactory.CreateParams(address(token0), address(token1), SQRT_1, 0, 0, BASE_FEE, MAX_FEE, 100_000, 0));
         vm.expectRevert(VolatilityFee.InvalidParams.selector);
         factory.createPool(IDAMMFactory.CreateParams(address(token0), address(token1), SQRT_1, 0, 0, MAX_FEE + 1, MAX_FEE, 0, 0));
@@ -158,7 +158,7 @@ contract DAMMTest is Test {
         assertApproxEqRel(a1, 50e18, 1e12);
         assertEq(pool.sharesOf(lp), shares - shares / 2);
         vm.prank(lp);
-        vm.expectRevert(DAMMPool.InsufficientShares.selector);
+        vm.expectRevert(AsterraDAMMPool.InsufficientShares.selector);
         pool.removeLiquidity(shares, 0, 0, lp, block.timestamp);
     }
 
@@ -206,17 +206,17 @@ contract DAMMTest is Test {
 
     function test_boundedRangeRunsOut() public {
         // range [0.25, 4]: selling far more than the range holds hits the edge
-        DAMMPool p = _create(SQRT_1, SQRT_1 / 2, SQRT_1 * 2, 0, 0);
+        AsterraDAMMPool p = _create(SQRT_1, SQRT_1 / 2, SQRT_1 * 2, 0, 0);
         _add(p, lp, 10e18, 10e18);
         _approve(trader, p);
         vm.prank(trader);
-        vm.expectRevert(DAMMPool.InsufficientLiquidity.selector);
+        vm.expectRevert(AsterraDAMMPool.InsufficientLiquidity.selector);
         p.swapExactInput(address(token0), 1000e18, 0, trader, block.timestamp);
     }
 
     function test_oneSidedLaunch() public {
         // price at the lower edge: only token0 can be deposited; buyers push the price up
-        DAMMPool p = _create(SQRT_1, SQRT_1, SQRT_1 * 4, 0, 0);
+        AsterraDAMMPool p = _create(SQRT_1, SQRT_1, SQRT_1 * 4, 0, 0);
         _approve(lp, p);
         vm.prank(lp);
         (, uint256 a0, uint256 a1) = p.addLiquidity(1000e18, 1000e18, 0, lp, block.timestamp);
@@ -230,7 +230,7 @@ contract DAMMTest is Test {
     function test_launchFeeDecays() public {
         uint24 start = uint24(VolatilityFee.MAX_FEE_PIPS);
         uint256 t0 = block.timestamp;
-        DAMMPool p = _create(SQRT_1, 0, 0, start, 1 hours);
+        AsterraDAMMPool p = _create(SQRT_1, 0, 0, start, 1 hours);
         assertEq(p.currentFee(), start);
         vm.warp(t0 + 30 minutes);
         assertEq(p.currentFee(), start - (start - BASE_FEE) / 2);

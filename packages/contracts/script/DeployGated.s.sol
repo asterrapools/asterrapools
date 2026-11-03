@@ -4,16 +4,17 @@ pragma solidity 0.8.26;
 import {Script, console2} from "forge-std/Script.sol";
 import {VmSafe} from "forge-std/Vm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AsterraHub} from "../src/core/AsterraHub.sol";
 import {IAsterraHub, AssetClass} from "../src/interfaces/IAsterraHub.sol";
 import {ILendingVault, IAsterraPositions, IAsterraRouter} from "../src/interfaces/IAsterraPeriphery.sol";
 import {AsterraLaunchpad} from "../src/launchpad/AsterraLaunchpad.sol";
-import {LaunchToken} from "../src/launchpad/LaunchToken.sol";
+import {AsterraLaunchToken} from "../src/launchpad/AsterraLaunchToken.sol";
 import {AsterraToken} from "../src/token/AsterraToken.sol";
 import {AsterraBuyback} from "../src/buyback/AsterraBuyback.sol";
-import {LendingVault} from "../src/credit/LendingVault.sol";
-import {CreditManager} from "../src/credit/CreditManager.sol";
+import {AsterraLendingVault} from "../src/credit/AsterraLendingVault.sol";
+import {AsterraCreditManager} from "../src/credit/AsterraCreditManager.sol";
 
 /// @notice Gated modules (mainnet runs them through DeployMainnet; DeployGated runs them alone after Deploy): registers the launch assets and deploys the hidden modules locked on-chain.
 ///         - Assets: WETH and the stablecoin as CANONICAL (no oracle yet). Stock tokens as STOCK with enabled=false,
@@ -59,11 +60,11 @@ abstract contract GatedModules is Script {
                 address(new AsterraLaunchpad()),
                 abi.encodeCall(
                     AsterraLaunchpad.initialize,
-                    (owner, IAsterraHub(hub), weth, address(new LaunchToken()), GATED_POOL_MANAGER, positions, hook)
+                    (owner, IAsterraHub(hub), weth, address(new UpgradeableBeacon(address(new AsterraLaunchToken()), owner)), GATED_POOL_MANAGER, positions, hook)
                 )
             )
         );
-        o.aster = address(new AsterraToken(owner));
+        o.aster = address(new ERC1967Proxy(address(new AsterraToken()), abi.encodeCall(AsterraToken.initialize, (owner, owner))));
         o.buyback = address(
             new ERC1967Proxy(
                 address(new AsterraBuyback()),
@@ -72,20 +73,20 @@ abstract contract GatedModules is Script {
         );
         o.lendingVault = address(
             new ERC1967Proxy(
-                address(new LendingVault()),
-                abi.encodeCall(LendingVault.initialize, (IERC20(stable), IAsterraHub(hub), owner, "Asterra USD Vault", "aeUSD"))
+                address(new AsterraLendingVault()),
+                abi.encodeCall(AsterraLendingVault.initialize, (IERC20(stable), IAsterraHub(hub), owner, "Asterra USD Vault", "asUSD"))
             )
         );
         o.creditManager = address(
             new ERC1967Proxy(
-                address(new CreditManager()),
+                address(new AsterraCreditManager()),
                 abi.encodeCall(
-                    CreditManager.initialize,
+                    AsterraCreditManager.initialize,
                     (owner, IAsterraHub(hub), IAsterraPositions(positions), ILendingVault(o.lendingVault), IAsterraRouter(router))
                 )
             )
         );
-        LendingVault(o.lendingVault).setCaps(0, 0);
+        AsterraLendingVault(o.lendingVault).setCaps(0, 0);
     }
 
     function _logGated(Gated memory o) internal pure {

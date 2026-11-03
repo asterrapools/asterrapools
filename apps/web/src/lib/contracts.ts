@@ -104,21 +104,21 @@ export function contractGroups(d: Deployment): ContractGroup[] {
     {
       category: "Venues",
       entries: [
-        e("dlmmFactory", "DLMM factory", "Deploys discrete-bin pools as beacon proxies."),
-        e("dlmmLimitOrders", "DLMM limit orders", "Single-bin orders that fill as the active bin crosses them."),
-        e("dammFactory", "DAMM factory", "Deploys dynamic single-range pools with optional launch fee schedules."),
+        e("dlmmFactory", "AsterraDLMMFactory", "Deploys discrete-bin pools as beacon proxies."),
+        e("dlmmLimitOrders", "AsterraDLMMLimitOrders", "Single-bin orders that fill as the active bin crosses them."),
+        e("dammFactory", "AsterraDAMMFactory", "Deploys dynamic single-range pools with optional launch fee schedules."),
       ],
     },
     ...(FEATURES.launchpad
-      ? [{ category: "Markets", entries: [e("launchpad", "Launchpad", "Bonding-curve launches that graduate into locked v4 liquidity.")] }]
+      ? [{ category: "Markets", entries: [e("launchpad", "AsterraLaunchpad", "Bonding-curve launches that graduate into locked v4 liquidity.")] }]
       : []),
     ...(FEATURES.credit
       ? [
           {
             category: "Credit",
             entries: [
-              e("lendingVault", "Lending vault", "ERC-4626 stablecoin vault lending to the credit manager."),
-              e("creditManager", "Credit manager", "Borrow against pledged position NFTs."),
+              e("lendingVault", "AsterraLendingVault", "ERC-4626 stablecoin vault lending to the credit manager."),
+              e("creditManager", "AsterraCreditManager", "Borrow against pledged position NFTs."),
             ],
           },
         ]
@@ -128,8 +128,8 @@ export function contractGroups(d: Deployment): ContractGroup[] {
           {
             category: "Buyback & burn",
             entries: [
-              e("buyback", "Buyback", "Swaps protocol revenue into ASTER and burns it."),
-              e("aster", "ASTER", "Protocol token bought back and burned."),
+              e("buyback", "AsterraBuyback", "Swaps protocol revenue into ASTER and burns it."),
+              e("aster", "AsterraToken (ASTER)", "Protocol token bought back and burned."),
             ],
           },
         ]

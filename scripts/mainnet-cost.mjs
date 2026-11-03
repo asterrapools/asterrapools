@@ -10,11 +10,11 @@ const ethUsd = res?.ok ? (await res.json()).ethereum.usd : Number(process.env.ET
 
 const GROUP = {
   AsterraHub: "Core", AsterraPositions: "Core", AsterraRouter: "Core", AsterraHook: "Core",
-  DLMMPool: "DLMM", DLMMFactory: "DLMM", DLMMLimitOrders: "DLMM",
-  DAMMPool: "DAMM", DAMMFactory: "DAMM",
-  AsterraLaunchpad: "Launchpad", LaunchToken: "Launchpad",
+  AsterraDLMMPool: "DLMM", AsterraDLMMFactory: "DLMM", AsterraDLMMLimitOrders: "DLMM",
+  AsterraDAMMPool: "DAMM", AsterraDAMMFactory: "DAMM",
+  AsterraLaunchpad: "Launchpad", AsterraLaunchToken: "Launchpad",
   AsterraToken: "ASTER + buyback", AsterraBuyback: "ASTER + buyback",
-  LendingVault: "Credit", CreditManager: "Credit",
+  AsterraLendingVault: "Credit", AsterraCreditManager: "Credit",
 };
 const totals = new Map();
 let group = "Core";
