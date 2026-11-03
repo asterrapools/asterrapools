@@ -65,7 +65,7 @@ export function ContractsView() {
         <section className="space-y-3">
           <p className="eyebrow">Upgrade model</p>
           <div className="rounded-xl border bg-surface px-4 py-3 text-sm text-fg-2">
-            UUPS (ERC-1967) proxies with ERC-7201 namespaced storage. Pools are BeaconProxy instances, so one audited
+            UUPS (ERC-1967) proxies with ERC-7201 namespaced storage. Pools are BeaconProxy instances, so one layout-checked
             implementation upgrade reaches every pool. Each upgrade is validated against the previous storage layout
             with OpenZeppelin Foundry Upgrades before it ships.
           </div>

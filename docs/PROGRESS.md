@@ -6,9 +6,15 @@
 |---|---|
 | Monorepo from AETHRA, renamed to Asterra (contracts, SDK, API, DB, web) | done |
 | ERC-7201 slots recomputed for `asterra.storage.*` | done |
-| 195 forge tests (unit, fuzz, invariant) | green |
+| 202 forge tests (unit, fuzz, invariant) | green |
 | New brand: prism palette from the logo, Unbounded + Geist, dark and light themes | done |
 | Landing: three.js prism star, DLMM/DAMM/routing/position labs, live swap card, contract registry | done |
+| Every deployed contract carries the Asterra name (`AsterraDLMMPool`, `AsterraLendingVault`, ...) | done |
+| ASTER is a UUPS proxy; launch tokens are beacon proxies (every contract upgradeable) | done |
+| 3 s first-visit intro (mark, DLMM bin ring reacting to the pointer, boot log), once per session | done, e2e guarded |
+| Star travels with the scroll behind the whole landing (section waypoints), adaptive quality on slow GPUs | done, e2e guarded |
+| Smoothness (2026-11-04, gesture scroll of the whole landing): laptop Intel UHD 1x/2x 60 fps; phone profile (CPU 4x) 58 fps; budget phone (CPU 6x) 46 fps, p95 frame 16.8 ms | measured |
+| Fork rehearsal of the 4-step testnet release with the renamed, all-proxy contracts | passed, 60.7M gas |
 | No `—`, `0` or empty values; charts never empty; operator wallet never shown | done, e2e guarded |
 | VPS stack (Postgres, PostgREST, edge-runtime, Caddy) rehearsed locally: migrations, cron → indexer, API | done |
 | Web Docker image (standalone, 313 MB) | done |
@@ -25,3 +31,6 @@
 - 2026-11-02: Until the mainnet release, the apex domain serves the live testnet app.
 - 2026-11-02: The deployer address is not in the SDK address files or the web bundle; the site recognises it by its keccak hash.
 - 2026-11-02: `export-abis.mjs` keeps hand-maintained ABIs (PoolManager) in the index instead of dropping them.
+- 2026-11-04: Brief re-read: generic contract names renamed with the Asterra prefix, ASTER and launch tokens made upgradeable (user's choice). The owner can freeze ASTER later by renouncing ownership.
+- 2026-11-04: Vault share symbol `aeUSD` (AETHRA leftover) renamed `asUSD`.
+- 2026-11-04: Landing motion follows the Ascend reference video: one 3D object fixed behind the page, moving between sections on scroll.

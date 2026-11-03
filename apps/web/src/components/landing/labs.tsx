@@ -14,21 +14,29 @@ import { cn } from "@/lib/utils";
 const usd = (v: number, d = 2) => v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
 const REF_PRICE = 2284.11; // ETH reference price for the illustrations
 
-/** Drives a value back and forth until the visitor takes over. */
-function useAutoplay(period: number, amplitude: number) {
+/** Drives a value back and forth until the visitor takes over. Runs only while `ref` is on screen. */
+function useAutoplay(period: number, amplitude: number, ref: React.RefObject<HTMLElement | null>) {
   const [v, setV] = React.useState(0);
   const [manual, setManual] = React.useState(false);
   React.useEffect(() => {
-    if (manual || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const el = ref.current;
+    if (!el || manual || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let raf = 0;
+    let last = 0;
     const t0 = performance.now();
     const tick = (now: number) => {
-      setV(Math.round(Math.sin(((now - t0) / period) * Math.PI * 2) * amplitude));
+      const next = Math.round(Math.sin(((now - t0) / period) * Math.PI * 2) * amplitude);
+      // only touch React when the integer step changes, not every frame
+      if (next !== last) setV((last = next));
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [manual, period, amplitude]);
+    const io = new IntersectionObserver(([e]) => {
+      cancelAnimationFrame(raf);
+      if (e?.isIntersecting) raf = requestAnimationFrame(tick);
+    });
+    io.observe(el);
+    return () => (io.disconnect(), cancelAnimationFrame(raf));
+  }, [manual, period, amplitude, ref]);
   return [v, (n: number) => (setManual(true), setV(n))] as const;
 }
 
@@ -80,14 +88,15 @@ const RADIUS = 18;
 
 export function BinLab() {
   const [shape, setShape] = React.useState<BinShape>("curve");
-  const [active, setActive] = useAutoplay(9000, 9);
+  const root = React.useRef<HTMLDivElement>(null);
+  const [active, setActive] = useAutoplay(9000, 9, root);
   const [hover, setHover] = React.useState<number | null>(null);
   const ids = Array.from({ length: RADIUS * 2 + 1 }, (_, i) => i - RADIUS);
   const price = (id: number) => REF_PRICE * Math.pow(1 + BIN_STEP / 10_000, id);
   const focus = hover ?? active;
   const crossed = Math.abs(active);
   return (
-    <div className="space-y-5">
+    <div ref={root} className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Segmented value={shape} onChange={setShape} options={[["spot", "Spot"], ["curve", "Curve"], ["bidask", "Bid-Ask"]]} />
         <span className="font-mono text-[11px] uppercase tracking-button text-muted">bin step {BIN_STEP} bps</span>

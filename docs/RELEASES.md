@@ -26,13 +26,17 @@ module appears as soon as it opens, without a redeploy.
 
 ## Gas budget
 
-Budget: **$7 of gas for every release together.** Measured on a fork rehearsal of the testnet release (2026-11-02):
+Budget: **$7 of gas for every release together.** Measured on a fork rehearsal of the testnet release (2026-11-04,
+after every contract became an upgradeable proxy; gas used from the receipts):
 
-| Step | Gas | Mainnet at 0.0201 gwei, ETH $2,284 |
+| Step | Gas | Mainnet at 0.0201 gwei, ETH $2,296 |
 |---|---|---|
-| Core + DLMM + DAMM (`Deploy.s.sol`) | 26.63M | ≈ $1.22 |
-| Locked V2/V3 modules (`DeployGated.s.sol`) | 15.44M | ≈ $0.71 |
+| Core + DLMM + DAMM (`Deploy.s.sol`) | 26.64M | ≈ $1.23 |
+| Locked V2/V3 modules (`DeployGated.s.sol`, ASTER proxy + launch-token beacon included) | 17.17M | ≈ $0.79 |
+| **Mainnet contracts, every release** | **43.81M** | **≈ $2.02** |
 | Opening a module | ≈ 0.1M each | < $0.01 |
 
-Mainnet deployer balance on 2026-11-02: 0.00156 ETH (≈ $3.56). The mainnet dry run in phase 2 re-measures every step
-before anything is broadcast.
+Testnet-only steps (`SetupMarkets` 10.76M, `DeepenLiquidity` 6.15M) mint faucet tokens and seed pools; they never run on
+mainnet. Mainnet deployer balance on 2026-11-04: 0.00325 ETH (≈ $7.46), so the contracts use under a third of the
+budget and the rest covers seeding and opening modules. The mainnet dry run in phase 2 re-measures every step before
+anything is broadcast.

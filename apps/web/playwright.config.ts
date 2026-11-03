@@ -4,6 +4,12 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "tests/e2e",
   timeout: 60_000,
-  use: { baseURL: "http://127.0.0.1:3100", channel: "chrome", viewport: { width: 1440, height: 900 } },
+  use: {
+    baseURL: "http://127.0.0.1:3100",
+    channel: "chrome",
+    viewport: { width: 1440, height: 900 },
+    // real GPU where there is one (like visitors have); without one Chrome falls back to software WebGL
+    launchOptions: { args: ["--use-angle=gl", "--ignore-gpu-blocklist", "--enable-gpu"] },
+  },
   webServer: { command: "pnpm start -p 3100", url: "http://127.0.0.1:3100", reuseExistingServer: true, timeout: 120_000 },
 });

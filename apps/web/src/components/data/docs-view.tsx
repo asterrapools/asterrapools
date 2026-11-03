@@ -35,7 +35,7 @@ const BLOCKS: Block[] = [
     body: (
       <>
         <p>
-          AsterraPools is an experimental liquidity layer on Robinhood Chain. It puts three kinds of pool behind one router, prices fees from volatility,
+          AsterraPools is the liquidity layer of Robinhood Chain. It puts three kinds of pool behind one router, prices fees from volatility,
           and lets stock-token pools follow an oracle. Everything runs on chain; the website only reads from an indexer and sends your transactions.
         </p>
         <Dl

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 // the build's default network (NEXT_PUBLIC_NETWORK) is the one a new visitor sees selected
 const DEFAULT = process.env.NEXT_PUBLIC_NETWORK === "mainnet" ? /mainnet/i : /testnet/i;

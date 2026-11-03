@@ -87,10 +87,8 @@ const PILLARS = [
 ];
 
 function Hero() {
-  const { resolvedTheme } = useTheme();
-  const mounted = useMounted();
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden" data-star="0.45 0 1 1" data-star-m="0 -0.62 0.55 1">
       <div className="pointer-events-none absolute inset-0 grid-paper opacity-40 [mask-image:radial-gradient(ellipse_at_70%_40%,black,transparent_70%)]" />
       <div className="pointer-events-none absolute -right-40 top-10 size-[640px] rounded-full bg-cobalt/20 blur-[120px] dark:bg-cobalt/30" />
       <div className="container relative grid min-h-[calc(100svh-3.5rem)] items-center gap-6 py-10 lg:grid-cols-[1.05fr_1fr] lg:py-0">
@@ -138,8 +136,8 @@ function Hero() {
             </ol>
           </Reveal>
         </div>
+        {/* the star itself lives in the fixed scene behind the page (Landing); this column frames it */}
         <div className="relative h-[46vh] min-h-[320px] cursor-crosshair lg:h-[78vh]">
-          {mounted && <PrismStar dark={resolvedTheme !== "light"} className="absolute inset-0" />}
           {/* HUD labels: real protocol parameters floating around the scene */}
           {[
             ["route.quote() · eth_call", "left-[4%] top-[14%]"],
@@ -224,7 +222,7 @@ function ChainSection() {
     ...(s?.assets ? [["Listed assets", String(s.assets)] as [string, string]] : []),
   ];
   return (
-    <section id="chain" className="container scroll-mt-20 py-20 md:py-28">
+    <section id="chain" className="container scroll-mt-20 py-20 md:py-28" data-star="-0.62 -0.68 0.52 0.85">
       <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr]">
         <SectionHead
           index="01"
@@ -282,7 +280,7 @@ function ChainSection() {
 
 function EnginesSection() {
   return (
-    <section id="engines" className="relative scroll-mt-20 border-y bg-bg-elevated py-20 md:py-28">
+    <section id="engines" className="relative scroll-mt-20 border-y bg-bg-elevated/60 py-20 md:py-28" data-star="0.62 0.45 0.55 0.85">
       <div className="container space-y-12">
         <SectionHead
           index="02"
@@ -351,7 +349,7 @@ function EnginesSection() {
 
 function FlowSection() {
   return (
-    <section id="flow" className="container scroll-mt-20 space-y-12 py-20 md:py-28">
+    <section id="flow" className="container scroll-mt-20 space-y-12 py-20 md:py-28" data-star="0.95 0.15 0.8 0.75">
       <SectionHead
         index="03"
         kicker="One ecosystem"
@@ -403,7 +401,7 @@ function TrySection() {
   const dash = useDashboard();
   const top = (dash.data?.all ?? []).filter((p) => !p.external).sort((a, b) => b.tvl_usd - a.tvl_usd).slice(0, 5);
   return (
-    <section className="relative overflow-hidden border-y bg-bg-elevated py-20 md:py-28">
+    <section className="relative overflow-hidden border-y bg-bg-elevated/60 py-20 md:py-28" data-star="-0.55 -0.45 0.6 0.85">
       <div className="pointer-events-none absolute -left-40 bottom-0 size-[520px] rounded-full bg-violet/15 blur-[120px]" />
       <div className="container relative grid gap-10 lg:grid-cols-[1fr_auto] lg:items-start">
         <div className="space-y-8">
@@ -467,7 +465,7 @@ function ContractsSection() {
     .flatMap((g) => g.entries.map((e) => ({ ...e, category: g.category })))
     .filter((e) => e.address);
   return (
-    <section id="contracts" className="container scroll-mt-20 space-y-10 py-20 md:py-28">
+    <section id="contracts" className="container scroll-mt-20 space-y-10 py-20 md:py-28" data-star="0 -1.1 1.6 0.45">
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <SectionHead index="05" kicker="Verify everything" title={<>The contracts behind every feature.</>}>
           Every address the app talks to, on {CHAIN.name}. Core contracts are UUPS proxies with ERC-7201 storage;
@@ -516,8 +514,8 @@ function ContractsSection() {
 
 function Outro() {
   return (
-    <section className="container pb-20">
-      <Reveal className="prism-ring relative overflow-hidden rounded-3xl bg-surface px-6 py-14 text-center md:py-20">
+    <section className="container pb-20" data-star="0 0.05 1.15 0.6" data-star-m="0 0.05 0.7 0.45">
+      <Reveal className="prism-ring relative overflow-hidden rounded-3xl bg-surface/70 px-6 py-14 text-center md:py-20">
         <div className="pointer-events-none absolute inset-0 bg-prism opacity-[0.07]" />
         <div className="relative mx-auto max-w-2xl space-y-6">
           <h2 className="text-4xl font-semibold tracking-tight md:text-6xl">
@@ -543,8 +541,14 @@ function Outro() {
 }
 
 export function Landing() {
+  const { resolvedTheme } = useTheme();
+  const mounted = useMounted();
   return (
     <>
+      {/* one scene behind the whole page; the star travels between the sections' data-star waypoints */}
+      <div className="pointer-events-none fixed inset-0 -z-10" data-scene aria-hidden>
+        {mounted && <PrismStar dark={resolvedTheme !== "light"} className="absolute inset-0" />}
+      </div>
       <Hero />
       <ChainSection />
       <EnginesSection />

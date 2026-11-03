@@ -5,10 +5,25 @@ import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 /**
- * Hero scene: the Asterra star as an iridescent extruded solid, liquidity streams spiralling into it from every
- * direction (many venues, one route) and a ring of DLMM-style bins orbiting it. Pointer tilts the star, a click
- * pulses the streams. Renders only while visible; with reduced motion it draws one still frame.
+ * Landing scene: the Asterra star as an iridescent extruded solid, liquidity streams spiralling into it from every
+ * direction (many venues, one route) and a ring of DLMM-style bins orbiting it. Pointer tilts the star, a click on
+ * empty page space pulses the streams. Renders only while visible; with reduced motion it draws one still frame.
+ *
+ * The canvas sits fixed behind the whole landing page and the star travels with the scroll: every element with
+ * `data-star="x y scale opacity"` (x, y in -1..1 of the viewport) is a waypoint, `data-star-m` overrides it on
+ * portrait screens. The star holds each section's pose and glides to the next one while that section rises through
+ * the lower half of the viewport.
  */
+
+type Pose = [x: number, y: number, s: number, o: number];
+const HOLD: Pose = [0.45, 0, 1, 1];
+
+function parsePose(v: string | undefined): Pose | null {
+  const n = v?.trim().split(/\s+/).map(Number);
+  return n && n.length === 4 && n.every(Number.isFinite) ? (n as Pose) : null;
+}
+
+const smooth = (t: number) => t * t * (3 - 2 * t);
 
 const PRISM = ["#dfff1f", "#19e6ff", "#2b4bff", "#8b3cff"];
 
@@ -121,7 +136,8 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let cleanupExtra = () => {};
     const small = window.innerWidth < 768;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, small ? 1.5 : 1.75));
+    // the canvas covers the viewport, so cap the pixel ratio harder than a hero-sized canvas would need
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, small ? 1.25 : 1.5));
     renderer.toneMapping = THREE.NeutralToneMapping;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     el.appendChild(renderer.domElement);
@@ -171,7 +187,10 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     const star = new THREE.Mesh(geo, starMat);
     const rig = new THREE.Group();
     rig.add(star);
-    scene.add(rig);
+    // everything that travels with the scroll
+    const root = new THREE.Group();
+    scene.add(root);
+    root.add(rig);
     const key = new THREE.DirectionalLight("#ffffff", 1.6);
     key.position.set(3, 4, 5);
     scene.add(key);
@@ -199,7 +218,7 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     const ring = new THREE.Group();
     ring.add(bins);
     ring.rotation.x = -1.12;
-    scene.add(ring);
+    root.add(ring);
 
     // ---- liquidity streams
     const N = small ? 1400 : 2600;
@@ -240,7 +259,7 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     });
     const streams = new THREE.Points(sGeo, sMat);
     streams.frustumCulled = false;
-    scene.add(streams);
+    root.add(streams);
 
     let themeDark: boolean | null = null;
     const applyTheme = () => {
@@ -259,33 +278,70 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     // ---- interaction
     const target = { x: 0, y: 0 };
     let pulse = 0;
+    // the canvas sits under the page, so listen on the window
     const onMove = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect();
-      target.x = ((e.clientX - r.left) / r.width - 0.5) * 2;
-      target.y = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      target.x = (e.clientX / window.innerWidth - 0.5) * 2;
+      target.y = (e.clientY / window.innerHeight - 0.5) * 2;
     };
     const onLeave = () => {
       target.x = 0;
       target.y = 0;
     };
-    const onClick = () => {
-      pulse = 1;
+    const onClick = (e: MouseEvent) => {
+      // clicks on controls are for the controls; a click on empty space pulses the star
+      if (!(e.target as Element | null)?.closest?.("a,button,input,select,textarea,label,[role=button],[role=slider],[data-radix-popper-content-wrapper]")) pulse = 1;
     };
-    el.addEventListener("pointermove", onMove);
-    el.addEventListener("pointerleave", onLeave);
-    el.addEventListener("click", onClick);
+    window.addEventListener("pointermove", onMove);
+    document.documentElement.addEventListener("pointerleave", onLeave);
+    window.addEventListener("click", onClick);
+
+    // ---- scroll waypoints
+    let portrait = false;
+    let marks: { top: number; pose: Pose }[] = [];
+    const measure = () => {
+      marks = [...document.querySelectorAll<HTMLElement>("[data-star]")]
+        .map((n) => {
+          const desk = parsePose(n.dataset.star);
+          if (!desk) return null;
+          // portrait default: copy spans the full width, so the star peeks in smaller and dimmer behind it
+          const pose = portrait ? (parsePose(n.dataset.starM) ?? ([desk[0] * 0.9, desk[1], desk[2] * 0.6, desk[3] * 0.4] as Pose)) : desk;
+          return { top: n.getBoundingClientRect().top + window.scrollY, pose };
+        })
+        .filter((m): m is { top: number; pose: Pose } => m !== null)
+        .sort((a, b) => a.top - b.top);
+    };
+    const want = (): Pose => {
+      if (!marks.length) return HOLD;
+      const h = window.innerHeight;
+      const probe = window.scrollY + h * 0.5;
+      let i = 0;
+      while (i < marks.length - 1 && probe >= marks[i + 1]!.top) i++;
+      const a = marks[i]!;
+      const b = marks[i + 1];
+      if (!b) return a.pose;
+      // hold this section's pose; glide to the next while its top rises from 95% to 50% of the viewport
+      const t = smooth(Math.min(1, Math.max(0, (probe - (b.top - h * 0.45)) / (h * 0.45))));
+      return a.pose.map((v, k) => v + (b.pose[k]! - v) * t) as Pose;
+    };
+    const pose: Pose = [...HOLD];
+    let poseReady = false;
+    let shownOpacity = -1;
 
     const resize = () => {
       const w = el.clientWidth || 1;
       const h = el.clientHeight || 1;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
+      portrait = w / h < 0.9;
       // keep the whole star and ring in frame on narrow screens
-      camera.position.z = w / h < 0.9 ? 11.2 : 9.6;
+      camera.position.z = portrait ? 11.2 : 9.6;
       camera.updateProjectionMatrix();
+      measure();
     };
     const ro = new ResizeObserver(resize);
     ro.observe(el);
+    // sections grow as data loads, which moves every waypoint below them
+    ro.observe(document.body);
     resize();
 
     let visible = true;
@@ -306,6 +362,17 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
       pulse = Math.max(0, pulse - dt * 1.4);
       uniforms.uTime.value = time;
       uniforms.uPulse.value = pulse;
+      const goal = want();
+      const k = poseReady && !reduced ? Math.min(1, dt * 4.5) : 1;
+      poseReady = true;
+      for (let j = 0; j < 4; j++) pose[j] = pose[j]! + (goal[j]! - pose[j]!) * k;
+      const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+      root.position.set(pose[0] * halfH * camera.aspect, pose[1] * halfH, 0);
+      root.scale.setScalar(pose[2]);
+      if (Math.abs(pose[3] - shownOpacity) > 0.004) {
+        shownOpacity = pose[3];
+        renderer.domElement.style.opacity = pose[3].toFixed(3);
+      }
       rig.rotation.y += (target.x * 0.55 + Math.sin(time * 0.4) * 0.25 - rig.rotation.y) * 0.06;
       rig.rotation.x += (target.y * 0.35 - rig.rotation.x) * 0.06;
       star.rotation.z = Math.sin(time * 0.3) * 0.05;
@@ -314,12 +381,34 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
       streams.rotation.z = time * 0.03;
       renderer.render(scene, camera);
     };
+    // adaptive quality: sustained slow frames (software WebGL, a weak GPU) drop the resolution step by step, and at
+    // the floor the scene draws every other frame, so scrolling and input stay responsive
+    let slow = 0;
+    let skip = false;
+    const MIN_RATIO = 0.5;
+    const degrade = (ms: number) => {
+      if (ms <= 40) return void (slow = Math.max(0, slow - 1));
+      slow += ms > 100 ? 3 : 1; // very slow frames step down sooner
+      if (slow < 12) return;
+      slow = 0;
+      const ratio = renderer.getPixelRatio();
+      if (ratio > MIN_RATIO) {
+        renderer.setPixelRatio(Math.max(MIN_RATIO, ratio * 0.7));
+        uniforms.uSize.value = 46 * renderer.getPixelRatio();
+        resize();
+      } else skip = true;
+    };
     const loop = () => {
       cancelAnimationFrame(raf);
       last = performance.now();
+      let prev = last;
+      let odd = false;
       const tick = (now: number) => {
         if (!visible || document.hidden) return;
-        frame(now);
+        degrade(now - prev);
+        prev = now;
+        odd = !odd;
+        if (!skip || odd) frame(now);
         raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
@@ -332,18 +421,20 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     if (reduced) {
       time = 4;
       frame(performance.now());
-      // re-render the still frame when the theme flips
-      const id = window.setInterval(() => themeDark !== darkRef.current && frame(performance.now()), 300);
-      cleanupExtra = () => window.clearInterval(id);
+      // still frame: redraw when the theme flips or the scroll moves the star to another section
+      const redraw = () => frame(performance.now());
+      const id = window.setInterval(() => themeDark !== darkRef.current && redraw(), 300);
+      window.addEventListener("scroll", redraw, { passive: true });
+      cleanupExtra = () => (window.clearInterval(id), window.removeEventListener("scroll", redraw));
     } else loop();
 
     return () => {
       cancelAnimationFrame(raf);
       cleanupExtra();
       document.removeEventListener("visibilitychange", onVis);
-      el.removeEventListener("pointermove", onMove);
-      el.removeEventListener("pointerleave", onLeave);
-      el.removeEventListener("click", onClick);
+      window.removeEventListener("pointermove", onMove);
+      document.documentElement.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("click", onClick);
       ro.disconnect();
       io.disconnect();
       geo.dispose();
