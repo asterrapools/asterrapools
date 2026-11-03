@@ -23,15 +23,16 @@ if ! ssh "$HOST" "test -f $DIR/infra/.env"; then
 fi
 
 profile=""; [ "$NET" = mainnet ] && profile="--profile mainnet"
+# the remote script arrives on stdin: commands inside it must not read stdin, or they swallow the rest of it
 ssh "$HOST" bash -s <<REMOTE
 set -euo pipefail
 cd $DIR/infra
 docker compose $profile pull -q web-$NET
 docker compose $profile up -d --remove-orphans
-for i in \$(seq 1 30); do docker compose exec -T db pg_isready -U postgres -h localhost >/dev/null 2>&1 && break; sleep 2; done
-bash migrate.sh
-bash sync-deployment.sh testnet
-bash sync-deployment.sh mainnet
+for i in \$(seq 1 30); do docker compose exec -T db pg_isready -U postgres -h localhost </dev/null >/dev/null 2>&1 && break; sleep 2; done
+bash migrate.sh </dev/null
+bash sync-deployment.sh testnet </dev/null
+bash sync-deployment.sh mainnet </dev/null
 docker compose ps --format '{{.Service}}\t{{.Status}}'
 REMOTE
 echo "deployed $NET"

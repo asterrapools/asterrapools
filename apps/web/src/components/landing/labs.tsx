@@ -18,6 +18,8 @@ const REF_PRICE = 2284.11; // ETH reference price for the illustrations
 function useAutoplay(period: number, amplitude: number, ref: React.RefObject<HTMLElement | null>) {
   const [v, setV] = React.useState(0);
   const [manual, setManual] = React.useState(false);
+  // read inside the loop: a frame already queued when the visitor grabs the control must not overwrite their value
+  const manualRef = React.useRef(false);
   React.useEffect(() => {
     const el = ref.current;
     if (!el || manual || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -25,6 +27,7 @@ function useAutoplay(period: number, amplitude: number, ref: React.RefObject<HTM
     let last = 0;
     const t0 = performance.now();
     const tick = (now: number) => {
+      if (manualRef.current) return;
       const next = Math.round(Math.sin(((now - t0) / period) * Math.PI * 2) * amplitude);
       // only touch React when the integer step changes, not every frame
       if (next !== last) setV((last = next));
@@ -37,7 +40,7 @@ function useAutoplay(period: number, amplitude: number, ref: React.RefObject<HTM
     io.observe(el);
     return () => (io.disconnect(), cancelAnimationFrame(raf));
   }, [manual, period, amplitude, ref]);
-  return [v, (n: number) => (setManual(true), setV(n))] as const;
+  return [v, (n: number) => ((manualRef.current = true), setManual(true), setV(n))] as const;
 }
 
 function Segmented<T extends string>({ value, options, onChange }: { value: T; options: [T, string][]; onChange: (v: T) => void }) {

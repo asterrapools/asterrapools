@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 
 test("intro plays for about three seconds on the first visit, then never again in the session", async ({ page }) => {
-  await page.goto("/");
+  // the intro paints with the first HTML; waiting for the full load could outlast it on a slow network
+  await page.goto("/", { waitUntil: "commit" });
   const intro = page.locator(".intro");
   await expect(intro).toBeVisible();
   await expect(intro).toContainText("Built for the flow of every market.");
   // still covering the page well into the run
-  await page.waitForTimeout(2200);
+  await page.waitForTimeout(1800);
   await expect(intro).toBeVisible();
   // gone after the 3 s run plus the exit wipe
   await expect(intro).toBeHidden({ timeout: 2500 });
