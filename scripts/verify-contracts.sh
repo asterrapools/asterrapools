@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Jalankan di: ROOT  ->  bash scripts/verify-contracts.sh <testnet|mainnet>
+# Jalankan di: ROOT  ->  pnpm testnet:verify | pnpm mainnet:verify  (or bash scripts/verify-contracts.sh <testnet|mainnet>)
 # Interactive explorer verification of every AsterraPools contract, built for screen recording. Four steps: check the
 # chain and explorer, submit each contract's source code, read every contract back from the explorer as proof (contract
 # name, full address and explorer link, grouped by module), then open any contract on the explorer.
