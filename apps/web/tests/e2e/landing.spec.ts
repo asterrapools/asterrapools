@@ -21,9 +21,12 @@ test("labs react to input: the bin slider moves the active bin, the route list r
   const engines = page.locator("#engines");
   await engines.scrollIntoViewIfNeeded();
   const slider = engines.locator('input[type="range"]').first();
-  await slider.fill("10");
   await expect(engines.getByText("Bins crossed")).toBeVisible();
-  await expect(engines.getByText("10", { exact: true })).toBeVisible();
+  // a value set before hydration is reset by React, so retry until the lab owns the input
+  await expect(async () => {
+    await slider.fill("10");
+    await expect(engines.getByText("10", { exact: true })).toBeVisible({ timeout: 500 });
+  }).toPass({ timeout: 10_000 });
   const flow = page.locator("#flow");
   await flow.locator('input[type="range"]').fill("0");
   await expect(flow.getByText("Best route", { exact: true })).toHaveCount(1);

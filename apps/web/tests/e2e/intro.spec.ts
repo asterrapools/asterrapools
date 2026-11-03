@@ -18,6 +18,7 @@ test("intro plays for about three seconds on the first visit, then never again i
 });
 
 test("intro reacts to the pointer", async ({ page }) => {
+  // the intro element stays mounted until 3.8 s after hydration, so the listeners always get a window
   await page.goto("/");
   const intro = page.locator(".intro");
   // keep moving until hydration has attached the listener
@@ -25,6 +26,6 @@ test("intro reacts to the pointer", async ({ page }) => {
     .poll(async () => {
       await page.mouse.move(900 + Math.random() * 40, 200);
       return intro.evaluate((el) => (el as HTMLElement).style.getPropertyValue("--pf"));
-    }, { timeout: 2500 })
+    }, { timeout: 3500 })
     .toBe("1");
 });

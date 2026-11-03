@@ -88,13 +88,13 @@ const PILLARS = [
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden" data-star="0.45 0 1 1" data-star-m="0 -0.62 0.55 1">
+    <section className="relative overflow-hidden" data-star="0.45 0 1 1 0 0 0 0" data-star-m="0 -0.62 0.55 1">
       <div className="pointer-events-none absolute inset-0 grid-paper opacity-40 [mask-image:radial-gradient(ellipse_at_70%_40%,black,transparent_70%)]" />
       <div className="pointer-events-none absolute -right-40 top-10 size-[640px] rounded-full bg-cobalt/20 blur-[120px] dark:bg-cobalt/30" />
       <div className="container relative grid min-h-[calc(100svh-3.5rem)] items-center gap-6 py-10 lg:grid-cols-[1.05fr_1fr] lg:py-0">
         <div className="relative z-10 space-y-7">
           <Reveal>
-            <p className="inline-flex items-center gap-2 rounded-full border bg-surface/70 px-3 py-1.5 font-mono text-[11px] uppercase tracking-button text-fg-2 backdrop-blur">
+            <p className="inline-flex items-center gap-2 rounded-full border bg-surface/90 px-3 py-1.5 font-mono text-[11px] uppercase tracking-button text-fg-2">
               <StatusDot state="live" />
               {CHAIN.name} · <LiveBlock />
             </p>
@@ -124,7 +124,7 @@ function Hero() {
             <ol className="grid gap-2 sm:grid-cols-3">
               {PILLARS.map(({ href, icon: Icon, n, label }) => (
                 <li key={n}>
-                  <a href={href} className="fx-prism group flex h-full items-start gap-3 rounded-xl border bg-surface/60 p-3 backdrop-blur hover:border-transparent">
+                  <a href={href} className="fx-prism group flex h-full items-start gap-3 rounded-xl border bg-surface/85 p-3 hover:border-transparent">
                     <Icon className="mt-0.5 size-4 shrink-0 text-primary-text" />
                     <span>
                       <span className="block font-mono text-[10px] text-muted">{n}</span>
@@ -147,7 +147,7 @@ function Hero() {
           ].map(([t, pos]) => (
             <span
               key={t}
-              className={cn("pointer-events-none absolute hidden rounded-full border bg-surface/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-button text-fg-2 backdrop-blur sm:block", pos)}
+              className={cn("pointer-events-none absolute hidden rounded-full border bg-surface/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-button text-fg-2 sm:block", pos)}
             >
               {t}
             </span>
@@ -193,7 +193,7 @@ function Ticker() {
       })
     : FACTS.map((f) => <span key={f}>{f}</span>);
   return (
-    <div className="relative border-y bg-surface/60 backdrop-blur">
+    <div className="relative border-y bg-surface/90">
       <div className="flex overflow-hidden py-3 [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
         <div className="flex shrink-0 animate-marquee items-center gap-10 pr-10 font-mono text-[12px] uppercase tracking-button text-muted hover:[animation-play-state:paused]">
           {[...items, ...items].map((it, i) => (
@@ -222,7 +222,7 @@ function ChainSection() {
     ...(s?.assets ? [["Listed assets", String(s.assets)] as [string, string]] : []),
   ];
   return (
-    <section id="chain" className="container scroll-mt-20 py-20 md:py-28" data-star="-0.62 -0.68 0.52 0.85">
+    <section id="chain" className="container scroll-mt-20 py-20 md:py-28" data-star="-0.62 -0.68 0.52 0.85 0.9 0 0 0">
       <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr]">
         <SectionHead
           index="01"
@@ -280,7 +280,7 @@ function ChainSection() {
 
 function EnginesSection() {
   return (
-    <section id="engines" className="relative scroll-mt-20 border-y bg-bg-elevated/60 py-20 md:py-28" data-star="0.62 0.45 0.55 0.85">
+    <section id="engines" className="relative scroll-mt-20 border-y bg-bg-elevated/60 py-20 md:py-28" data-star="0.62 0.45 0.55 0.85 0.2 0 2.2 1">
       <div className="container space-y-12">
         <SectionHead
           index="02"
@@ -349,7 +349,7 @@ function EnginesSection() {
 
 function FlowSection() {
   return (
-    <section id="flow" className="container scroll-mt-20 space-y-12 py-20 md:py-28" data-star="0.95 0.15 0.8 0.75">
+    <section id="flow" className="container scroll-mt-20 space-y-12 py-20 md:py-28" data-star="0.95 0.15 0.8 0.75 0.45 1 0 2">
       <SectionHead
         index="03"
         kicker="One ecosystem"
@@ -401,7 +401,7 @@ function TrySection() {
   const dash = useDashboard();
   const top = (dash.data?.all ?? []).filter((p) => !p.external).sort((a, b) => b.tvl_usd - a.tvl_usd).slice(0, 5);
   return (
-    <section className="relative overflow-hidden border-y bg-bg-elevated/60 py-20 md:py-28" data-star="-0.55 -0.45 0.6 0.85">
+    <section className="relative overflow-hidden border-y bg-bg-elevated/60 py-20 md:py-28" data-star="-0.55 -0.45 0.6 0.85 1 0.45 -1.6 1">
       <div className="pointer-events-none absolute -left-40 bottom-0 size-[520px] rounded-full bg-violet/15 blur-[120px]" />
       <div className="container relative grid gap-10 lg:grid-cols-[1fr_auto] lg:items-start">
         <div className="space-y-8">
@@ -465,7 +465,7 @@ function ContractsSection() {
     .flatMap((g) => g.entries.map((e) => ({ ...e, category: g.category })))
     .filter((e) => e.address);
   return (
-    <section id="contracts" className="container scroll-mt-20 space-y-10 py-20 md:py-28" data-star="0 -1.1 1.6 0.45">
+    <section id="contracts" className="container scroll-mt-20 space-y-10 py-20 md:py-28" data-star="0 -1.3 1.2 0.35 0 0.6 0 0">
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <SectionHead index="05" kicker="Verify everything" title={<>The contracts behind every feature.</>}>
           Every address the app talks to, on {CHAIN.name}. Core contracts are UUPS proxies with ERC-7201 storage;
@@ -514,7 +514,7 @@ function ContractsSection() {
 
 function Outro() {
   return (
-    <section className="container pb-20" data-star="0 0.05 1.15 0.6" data-star-m="0 0.05 0.7 0.45">
+    <section className="container pb-20" data-star="0 0.05 1.15 0.6 0 0 0 0" data-star-m="0 0.05 0.7 0.45">
       <Reveal className="prism-ring relative overflow-hidden rounded-3xl bg-surface/70 px-6 py-14 text-center md:py-20">
         <div className="pointer-events-none absolute inset-0 bg-prism opacity-[0.07]" />
         <div className="relative mx-auto max-w-2xl space-y-6">
