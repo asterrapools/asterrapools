@@ -3,13 +3,13 @@
   "weth": "0x33e4191705c386532ba27cBF171Db86919200B94",
   "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
   "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
-  "hub": "0xa39F73D7569d309eb1DcCD7866019DCaCc0e5669",
-  "hook": "0xE348ACC85DCE6CfA45633C8E273Fbc55ab70BaCC",
-  "router": "0xA451dE6096bC1929611A6Ab7Dd2aa5DE5567dc91",
-  "positions": "0xa9E6aD391F357C6d55f87C39a4dEF6F6b5E4d1af",
-  "dlmmFactory": "0x132A8913E90e9346071E3fdFC4125c558bD2F58F",
-  "dlmmLimitOrders": "0xC3A56930FE93f687E420C9efE365688C055BFf79",
-  "dammFactory": "0x28a0307BE727594340B00048b912Feb59d556506",
+  "hub": "0x01327059eA96296Ce211447e172A2141f35289c0",
+  "hook": "0x0767bae17950e47414e44939c4Fb29d9ecd3bAcC",
+  "router": "0xDB8ceD28FFb34f5152681574073f96ce50bb5D2d",
+  "positions": "0xaAD41fe843a12bA3bDB6B528876fAf7A0d78fa1c",
+  "dlmmFactory": "0xcdD521C9471743fd9F34D7Bd1d2C9134efdc1E64",
+  "dlmmLimitOrders": "0x56Df7C5537fD5d4B79396cf6AE2aC4417336f47d",
+  "dammFactory": "0xA3A78463ebFF712399998573975F7900F31B28C7",
   "launchpad": null,
   "lendingVault": null,
   "creditManager": null,
@@ -59,28 +59,28 @@
       "symbol": "WETH"
     },
     "aAAPL": {
-      "address": "0x7D302e518B927F694160B767849A7ACcaB43210F",
+      "address": "0x3939b7aa0Ad0Cc88B31755AC0e5b234eD551146F",
       "decimals": 18,
       "kind": "stock",
       "name": "Asterra Test Apple",
       "symbol": "aAAPL"
     },
     "aNVDA": {
-      "address": "0xa9B096A1753894C91270022DA686ba80461c75Cc",
+      "address": "0x1912EE4462C07c3d082E35EfEC173D6ab3c1A2B1",
       "decimals": 18,
       "kind": "stock",
       "name": "Asterra Test NVIDIA",
       "symbol": "aNVDA"
     },
     "aTSLA": {
-      "address": "0x7578f6a623eFc64DfC1dCE602da817eF70D851cD",
+      "address": "0xB35B3bf9effB66317c11AE0F9a2a86Ed80D127b2",
       "decimals": 18,
       "kind": "stock",
       "name": "Asterra Test Tesla",
       "symbol": "aTSLA"
     },
     "aUSD": {
-      "address": "0x013E9dBD0aC279A0d469AD22731A5d5c73217286",
+      "address": "0xE4e00c59F948Cc0568A945471C60Fb24F5734fC1",
       "decimals": 6,
       "kind": "test",
       "name": "Asterra Test USD",
@@ -88,23 +88,23 @@
     }
   },
   "oracles": {
-    "AMD": "0x718d71FE23a73Af5cff6cC96a0e8dbD0f0E53d00",
-    "AMZN": "0xd418A0775af944aBE91dECFe99d9cE3BB6e12867",
-    "NFLX": "0xEF8289f1F4176F2cDd5587070a4FA5d93265b8f3",
-    "PLTR": "0x7cfe40acA7d4C20cF04063960e757ecC23654F5b",
-    "TSLA": "0xeDb53497Eb561B6C15F31EFd50122A1A328aCbD9",
-    "WETH": "0x84f77c5B89222ccD070405ca6BCD98a6c6C91b90",
-    "aAAPL": "0x66c5f4bEb54bd82d691E727864A334eA8D1eDF1F",
-    "aNVDA": "0xf243b17Ac4ffd251A7a4D54CF5179f51FA8c408f",
-    "aTSLA": "0x177bCb4F3774bdaB86644919f805c1B41e6f4763",
-    "aUSD": "0x31649f66750D92FaCDD68AbA312d0535C382119C"
+    "AMD": "0x22A2c67751cFe5Bb6ceC171aBd4C6C6043f800d7",
+    "AMZN": "0x82671BFF79D2807A78Eea6B2516caaE2Dc6F2A01",
+    "NFLX": "0x599459da32b69CDb81AB6f316473924819D0E24D",
+    "PLTR": "0xf0231e96b215a6AfBCfd1318f0cFAaae1D16D714",
+    "TSLA": "0x1953d806bdDF7d5E8d689fdD2cb2463b72B06014",
+    "WETH": "0x3cA6D71dce0a7Eb2104Ff88CE081246E769369b3",
+    "aAAPL": "0x77cca74256deF50Dae9dC7935BB1F09a157a087F",
+    "aNVDA": "0x620242951DDb04E489cDAD586Dd4eBed859BC441",
+    "aTSLA": "0x6157bcae7F9F268062b90a58f7244ceC222ca691",
+    "aUSD": "0x20350730f4F12EBdeE0AE7443249c1CEc95E5420"
   },
-  "startBlock": 147052687,
+  "startBlock": 147869559,
   "hidden": {
-    "launchpad": "0x0F04420079de568770996E1072D6e37cf4031d9A",
-    "aster": "0x5EC1620Be163d3502fFbB975b18A7dc01626aAb4",
-    "buyback": "0x7fbeD49d4cE565eCBB9fbCAb4217d9330A3fEC85",
-    "lendingVault": "0x35999F75E55dE02C02c6E8f61a8b6D705Dc81EEC",
-    "creditManager": "0xb1049f49F0A196EEc31a4dcFc8eFd5253Be72594"
+    "launchpad": "0x39fCFde08E5811d44e3F17D9d3dfd5dc143f5537",
+    "aster": "0x136999f59948d0BD1870bc44E82d5fE335dC4232",
+    "buyback": "0x5E6375f2C285294FD2c369E61aB9F4F4fd4Bc5A4",
+    "lendingVault": "0xaa935f375d63D73a0e44c0354d84c06D61d147f3",
+    "creditManager": "0x2D47c1cD006cD3283FffE1fe67ba283BE6DfEA40"
   }
 }

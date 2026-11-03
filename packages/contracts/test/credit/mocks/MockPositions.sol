@@ -8,7 +8,7 @@ import {IAsterraPositions} from "../../../src/interfaces/IAsterraPeriphery.sol";
 import {MockToken} from "./MockToken.sol";
 
 /// @notice Minimal stand-in for AsterraPositions: settable amounts and fees, `collect` mints the fee tokens.
-///         Only the surface the CreditManager uses is meaningful.
+///         Only the surface the AsterraCreditManager uses is meaningful.
 contract MockPositions is ERC721 {
     mapping(uint256 => IAsterraPositions.Position) internal _pos;
     mapping(uint256 => uint256[2]) internal _amounts;

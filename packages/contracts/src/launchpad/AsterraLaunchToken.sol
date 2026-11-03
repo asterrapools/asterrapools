@@ -3,10 +3,12 @@ pragma solidity 0.8.26;
 
 import {ERC20} from "solady/tokens/ERC20.sol";
 
-/// @title LaunchToken
-/// @notice Minimal fixed-supply ERC20 deployed by the launchpad as EIP-1167 clones of one implementation.
-///         The whole supply is minted to the launchpad on initialization. Not upgradeable, no owner.
-contract LaunchToken is ERC20 {
+/// @title AsterraLaunchToken
+/// @notice Minimal fixed-supply ERC20 deployed by the launchpad as ERC-1967 beacon proxies of one
+///         UpgradeableBeacon, so one beacon upgrade reaches every launch token. The whole supply is minted to the launchpad
+///         on initialization; no owner, no mint.
+/// @dev solady ERC20 keeps balances in hashed slots; launchpad, _name, _symbol sit in slots 0-2. Append new fields only.
+contract AsterraLaunchToken is ERC20 {
     uint256 public constant TOTAL_SUPPLY = 1_000_000_000e18;
 
     error AlreadyInitialized();
@@ -18,11 +20,11 @@ contract LaunchToken is ERC20 {
     string private _symbol;
 
     constructor() {
-        // Lock the implementation itself; clones start with empty storage.
+        // Lock the implementation itself; proxies start with empty storage.
         launchpad = address(0xdead);
     }
 
-    /// @dev Called by the launchpad in the same transaction that creates the clone.
+    /// @dev Called by the launchpad in the same transaction that creates the proxy.
     function initialize(string calldata name_, string calldata symbol_, address launchpad_) external {
         if (launchpad != address(0)) revert AlreadyInitialized();
         if (launchpad_ == address(0)) revert ZeroLaunchpad();

@@ -10,23 +10,23 @@ import {IAsterraHub, Venue, AssetClass} from "../../src/interfaces/IAsterraHub.s
 import {
     ICreditManager, ILendingVault, IAsterraPositions, IAsterraRouter
 } from "../../src/interfaces/IAsterraPeriphery.sol";
-import {LendingVault} from "../../src/credit/LendingVault.sol";
-import {CreditManager} from "../../src/credit/CreditManager.sol";
+import {AsterraLendingVault} from "../../src/credit/AsterraLendingVault.sol";
+import {AsterraCreditManager} from "../../src/credit/AsterraCreditManager.sol";
 import {MockPriceFeed} from "../../src/mocks/MockPriceFeed.sol";
 import {MockToken} from "./mocks/MockToken.sol";
 import {MockPositions} from "./mocks/MockPositions.sol";
 import {MockRouter} from "./mocks/MockRouter.sol";
 import {CreditBase} from "./LendingVault.t.sol";
 
-contract CreditManagerV2 is CreditManager {
+contract CreditManagerV2 is AsterraCreditManager {
     function version() external pure returns (uint256) {
         return 2;
     }
 }
 
 contract CreditManagerTest is CreditBase {
-    LendingVault vault;
-    CreditManager cm;
+    AsterraLendingVault vault;
+    AsterraCreditManager cm;
     MockToken usd;
     MockToken weth;
     MockToken tsla;
@@ -66,14 +66,14 @@ contract CreditManagerTest is CreditBase {
         router = new MockRouter(address(weth));
         vault = _deployVault(usd);
 
-        CreditManager impl = new CreditManager();
-        cm = CreditManager(
+        AsterraCreditManager impl = new AsterraCreditManager();
+        cm = AsterraCreditManager(
             payable(
                 address(
                     new ERC1967Proxy(
                         address(impl),
                         abi.encodeCall(
-                            CreditManager.initialize,
+                            AsterraCreditManager.initialize,
                             (
                                 owner,
                                 IAsterraHub(address(hub)),
@@ -197,7 +197,7 @@ contract CreditManagerTest is CreditBase {
 
     function test_directTransferRejected() public {
         vm.prank(alice);
-        vm.expectRevert(CreditManager.UnexpectedNft.selector);
+        vm.expectRevert(AsterraCreditManager.UnexpectedNft.selector);
         positions.safeTransferFrom(alice, address(cm), tokenId);
     }
 
@@ -245,7 +245,7 @@ contract CreditManagerTest is CreditBase {
         cm.setRiskParams(5000, 7000, 500, 100 * UNIT);
         _pledge();
         vm.prank(alice);
-        vm.expectRevert(CreditManager.BelowMinDebt.selector);
+        vm.expectRevert(AsterraCreditManager.BelowMinDebt.selector);
         cm.borrow(tokenId, 99 * UNIT, alice);
         vm.prank(alice);
         cm.borrow(tokenId, 100 * UNIT, alice);
@@ -276,7 +276,7 @@ contract CreditManagerTest is CreditBase {
     }
 
     function test_repayUnknownLoan() public {
-        vm.expectRevert(CreditManager.UnknownLoan.selector);
+        vm.expectRevert(AsterraCreditManager.UnknownLoan.selector);
         cm.repay(999, 1);
     }
 
@@ -366,7 +366,7 @@ contract CreditManagerTest is CreditBase {
     }
 
     function test_liquidateUnknown() public {
-        vm.expectRevert(CreditManager.UnknownLoan.selector);
+        vm.expectRevert(AsterraCreditManager.UnknownLoan.selector);
         cm.liquidate(42);
     }
 
@@ -396,11 +396,11 @@ contract CreditManagerTest is CreditBase {
         positions.setFees(tokenId, 0.1e18, 1e18); // $200 + $250
 
         vm.prank(liquidator);
-        vm.expectRevert(CreditManager.NotAuthorized.selector);
+        vm.expectRevert(AsterraCreditManager.NotAuthorized.selector);
         cm.autoRepayFromFees(tokenId, _routeTo(address(weth)), _routeTo(address(tsla)), 0);
 
         vm.prank(keeper);
-        vm.expectRevert(CreditManager.Slippage.selector);
+        vm.expectRevert(AsterraCreditManager.Slippage.selector);
         cm.autoRepayFromFees(tokenId, _routeTo(address(weth)), _routeTo(address(tsla)), 451 * UNIT);
 
         vm.prank(keeper);
@@ -426,12 +426,12 @@ contract CreditManagerTest is CreditBase {
         _pledgeAndBorrow(1000 * UNIT);
         positions.setFees(tokenId, 0.1e18, 0);
         vm.prank(alice);
-        vm.expectRevert(CreditManager.BadRoute.selector);
+        vm.expectRevert(AsterraCreditManager.BadRoute.selector);
         cm.autoRepayFromFees(tokenId, _routeTo(address(tsla)), new IAsterraRouter.Hop[](0), 0);
         IAsterraRouter.Hop[] memory r = new IAsterraRouter.Hop[](1);
         r[0] = IAsterraRouter.Hop(Venue.V4, address(0), address(weth), address(tsla), "");
         vm.prank(alice);
-        vm.expectRevert(CreditManager.BadRoute.selector);
+        vm.expectRevert(AsterraCreditManager.BadRoute.selector);
         cm.autoRepayFromFees(tokenId, r, new IAsterraRouter.Hop[](0), 0);
     }
 
@@ -441,13 +441,13 @@ contract CreditManagerTest is CreditBase {
         vm.expectRevert();
         cm.setRiskParams(5000, 7000, 500, 0);
         vm.startPrank(owner);
-        vm.expectRevert(CreditManager.InvalidParams.selector);
+        vm.expectRevert(AsterraCreditManager.InvalidParams.selector);
         cm.setRiskParams(0, 7000, 500, 0);
-        vm.expectRevert(CreditManager.InvalidParams.selector);
+        vm.expectRevert(AsterraCreditManager.InvalidParams.selector);
         cm.setRiskParams(8000, 7000, 500, 0);
-        vm.expectRevert(CreditManager.InvalidParams.selector);
+        vm.expectRevert(AsterraCreditManager.InvalidParams.selector);
         cm.setRiskParams(5000, 10_000, 500, 0);
-        vm.expectRevert(CreditManager.InvalidParams.selector);
+        vm.expectRevert(AsterraCreditManager.InvalidParams.selector);
         cm.setRiskParams(5000, 7000, 2001, 0);
         cm.setRiskParams(6000, 8000, 800, 1);
         vm.stopPrank();

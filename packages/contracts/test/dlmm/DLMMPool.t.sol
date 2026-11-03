@@ -4,14 +4,14 @@ pragma solidity 0.8.26;
 import {FixedPointMathLib as FPM} from "solady/utils/FixedPointMathLib.sol";
 import {IAsterraPool} from "../../src/interfaces/IAsterraPools.sol";
 import {IAsterraHub, Venue} from "../../src/interfaces/IAsterraHub.sol";
-import {DLMMPool} from "../../src/dlmm/DLMMPool.sol";
+import {AsterraDLMMPool} from "../../src/dlmm/AsterraDLMMPool.sol";
 import {VolatilityFee} from "../../src/libraries/VolatilityFee.sol";
 import {DLMMBase} from "./DLMMBase.t.sol";
 
 contract DLMMPoolTest is DLMMBase {
     uint256 constant ONE = 1 << 128;
 
-    function _sum(DLMMPool p) internal view returns (uint256 s0, uint256 s1) {
+    function _sum(AsterraDLMMPool p) internal view returns (uint256 s0, uint256 s1) {
         (, uint128[] memory r0, uint128[] memory r1) = p.getBins(-100_000, 100_000, 10_000);
         for (uint256 i; i < r0.length; ++i) {
             s0 += r0[i];
@@ -19,7 +19,7 @@ contract DLMMPoolTest is DLMMBase {
         }
     }
 
-    function _assertSolvent(DLMMPool p) internal view {
+    function _assertSolvent(AsterraDLMMPool p) internal view {
         (uint256 s0, uint256 s1) = _sum(p);
         (uint128 f0, uint128 f1) = p.protocolFees();
         assertGe(token0.balanceOf(address(p)), s0 + f0, "solvent0");
@@ -53,13 +53,13 @@ contract DLMMPoolTest is DLMMBase {
 
     function test_addLiquiditySideRules() public {
         vm.startPrank(lp);
-        vm.expectRevert(abi.encodeWithSelector(DLMMPool.InvalidBin.selector, int24(1)));
+        vm.expectRevert(abi.encodeWithSelector(AsterraDLMMPool.InvalidBin.selector, int24(1)));
         pool.addLiquidity(_one(1), _oneU(0), _oneU(1e18), lp, block.timestamp);
-        vm.expectRevert(abi.encodeWithSelector(DLMMPool.InvalidBin.selector, int24(-1)));
+        vm.expectRevert(abi.encodeWithSelector(AsterraDLMMPool.InvalidBin.selector, int24(-1)));
         pool.addLiquidity(_one(-1), _oneU(1e18), _oneU(0), lp, block.timestamp);
         vm.expectRevert(IAsterraPool.ZeroAmount.selector);
         pool.addLiquidity(_one(0), _oneU(0), _oneU(0), lp, block.timestamp);
-        vm.expectRevert(DLMMPool.LengthMismatch.selector);
+        vm.expectRevert(AsterraDLMMPool.LengthMismatch.selector);
         pool.addLiquidity(_one(0), new uint256[](2), _oneU(0), lp, block.timestamp);
         vm.expectRevert(IAsterraPool.Expired.selector);
         pool.addLiquidity(_one(0), _oneU(1), _oneU(1), lp, block.timestamp - 1);
@@ -117,7 +117,7 @@ contract DLMMPoolTest is DLMMBase {
         vm.assume(uint256(x0) + y0 > 1e6);
         vm.assume(uint256(x) + y > 0);
         int24 active = int24(activeShift);
-        DLMMPool p = _createPool(10, active, BASE_FEE, MAX_FEE);
+        AsterraDLMMPool p = _createPool(10, active, BASE_FEE, MAX_FEE);
         _approve(p, lp);
         _approve(p, trader);
         _add(p, lp, active, x0, y0);
@@ -139,7 +139,7 @@ contract DLMMPoolTest is DLMMBase {
     function test_removeLiquidityChecks() public {
         uint256 s = _add(pool, lp, 0, 1e18, 1e18);
         vm.startPrank(lp);
-        vm.expectRevert(DLMMPool.InsufficientShares.selector);
+        vm.expectRevert(AsterraDLMMPool.InsufficientShares.selector);
         pool.removeLiquidity(_one(0), _oneU(s + 1), 0, 0, lp, block.timestamp);
         vm.expectRevert(IAsterraPool.Slippage.selector);
         pool.removeLiquidity(_one(0), _oneU(s), 1e18, 0, lp, block.timestamp);
@@ -157,7 +157,7 @@ contract DLMMPoolTest is DLMMBase {
         assertEq(pool.sharesOf(0, trader), s / 2);
         assertEq(pool.sharesOf(0, lp), s - s / 2);
         vm.prank(lp);
-        vm.expectRevert(DLMMPool.InsufficientShares.selector);
+        vm.expectRevert(AsterraDLMMPool.InsufficientShares.selector);
         pool.transferShares(0, trader, s);
         vm.prank(trader);
         (uint256 a0, uint256 a1) = pool.removeLiquidity(_one(0), _oneU(s / 2), 0, 0, trader, block.timestamp);
@@ -236,7 +236,7 @@ contract DLMMPoolTest is DLMMBase {
             returns (uint256 out) {
                 assertEq(out, 0);
             } catch (bytes memory err) {
-                assertEq(bytes4(err), DLMMPool.InsufficientLiquidity.selector);
+                assertEq(bytes4(err), AsterraDLMMPool.InsufficientLiquidity.selector);
             }
             return;
         }
@@ -369,7 +369,7 @@ contract DLMMPoolTest is DLMMBase {
         (uint256 q,) = pool.quoteExactInput(address(token0), 1e18);
         vm.expectRevert(IAsterraPool.Slippage.selector);
         pool.swapExactInput(address(token0), 1e18, q + 1, trader, block.timestamp);
-        vm.expectRevert(DLMMPool.InsufficientLiquidity.selector);
+        vm.expectRevert(AsterraDLMMPool.InsufficientLiquidity.selector);
         pool.swapExactInput(address(token0), 100e18, 0, trader, block.timestamp);
         vm.stopPrank();
         (uint256 q2,) = pool.quoteExactInput(address(token0), 100e18);
@@ -394,7 +394,7 @@ contract DLMMPoolTest is DLMMBase {
         (uint256 q,) = pool.quoteExactInput(address(token0), 160e15);
         assertEq(q, 0);
         vm.prank(trader);
-        vm.expectRevert(DLMMPool.InsufficientLiquidity.selector);
+        vm.expectRevert(AsterraDLMMPool.InsufficientLiquidity.selector);
         pool.swapExactInput(address(token0), 160e15, 0, trader, block.timestamp);
         // below the cap is fine
         uint256 gasBefore = gasleft();
@@ -427,7 +427,7 @@ contract DLMMPoolTest is DLMMBase {
 
     function test_setFeeParamsOnlyFactory() public {
         VolatilityFee.Params memory p = pool.feeParams();
-        vm.expectRevert(DLMMPool.NotFactory.selector);
+        vm.expectRevert(AsterraDLMMPool.NotFactory.selector);
         pool.setFeeParams(p);
         p.baseFee = 500;
         vm.prank(owner);
@@ -439,7 +439,7 @@ contract DLMMPoolTest is DLMMBase {
         factory.setPoolFeeParams(address(pool), p);
     }
 
-    function _approve(DLMMPool p, address who) internal {
+    function _approve(AsterraDLMMPool p, address who) internal {
         vm.startPrank(who);
         token0.approve(address(p), type(uint256).max);
         token1.approve(address(p), type(uint256).max);

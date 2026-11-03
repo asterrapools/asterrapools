@@ -272,7 +272,7 @@ export const launchpadAbi = [
         "internalType": "address"
       },
       {
-        "name": "tokenImplementation_",
+        "name": "tokenBeacon_",
         "type": "address",
         "internalType": "address"
       },
@@ -710,7 +710,7 @@ export const launchpadAbi = [
   },
   {
     "type": "function",
-    "name": "tokenImplementation",
+    "name": "tokenBeacon",
     "inputs": [],
     "outputs": [
       {

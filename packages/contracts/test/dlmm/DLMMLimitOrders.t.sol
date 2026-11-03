@@ -2,12 +2,12 @@
 pragma solidity 0.8.26;
 
 import {IDLMMLimitOrders} from "../../src/interfaces/IAsterraPools.sol";
-import {DLMMLimitOrders} from "../../src/dlmm/DLMMLimitOrders.sol";
-import {DLMMPool} from "../../src/dlmm/DLMMPool.sol";
+import {AsterraDLMMLimitOrders} from "../../src/dlmm/AsterraDLMMLimitOrders.sol";
+import {AsterraDLMMPool} from "../../src/dlmm/AsterraDLMMPool.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {DLMMBase} from "./DLMMBase.t.sol";
 
-contract DLMMLimitOrdersV2 is DLMMLimitOrders {
+contract DLMMLimitOrdersV2 is AsterraDLMMLimitOrders {
     function version() external pure returns (uint256) {
         return 2;
     }
@@ -60,15 +60,15 @@ contract DLMMLimitOrdersTest is DLMMBase {
     function test_placeRejects() public {
         int24 active = pool.activeId();
         vm.startPrank(maker);
-        vm.expectRevert(DLMMLimitOrders.InvalidBin.selector);
+        vm.expectRevert(AsterraDLMMLimitOrders.InvalidBin.selector);
         orders.place(address(pool), active, IDLMMLimitOrders.Side.SELL_TOKEN0, 1e18, block.timestamp);
-        vm.expectRevert(DLMMLimitOrders.InvalidBin.selector);
+        vm.expectRevert(AsterraDLMMLimitOrders.InvalidBin.selector);
         orders.place(address(pool), active + 1, IDLMMLimitOrders.Side.SELL_TOKEN1, 1e18, block.timestamp);
-        vm.expectRevert(DLMMLimitOrders.ZeroAmount.selector);
+        vm.expectRevert(AsterraDLMMLimitOrders.ZeroAmount.selector);
         orders.place(address(pool), active + 1, IDLMMLimitOrders.Side.SELL_TOKEN0, 0, block.timestamp);
-        vm.expectRevert(DLMMLimitOrders.Expired.selector);
+        vm.expectRevert(AsterraDLMMLimitOrders.Expired.selector);
         orders.place(address(pool), active + 1, IDLMMLimitOrders.Side.SELL_TOKEN0, 1e18, block.timestamp - 1);
-        vm.expectRevert(DLMMLimitOrders.UnknownPool.selector);
+        vm.expectRevert(AsterraDLMMLimitOrders.UnknownPool.selector);
         orders.place(address(0xdead), active + 1, IDLMMLimitOrders.Side.SELL_TOKEN0, 1e18, block.timestamp);
         vm.stopPrank();
     }
@@ -76,7 +76,7 @@ contract DLMMLimitOrdersTest is DLMMBase {
     function test_sellToken0FillsAndClaims() public {
         int24 bin = pool.activeId() + 2;
         uint256 id = _place(bin, IDLMMLimitOrders.Side.SELL_TOKEN0, 3e18);
-        vm.expectRevert(DLMMLimitOrders.NotFilled.selector);
+        vm.expectRevert(AsterraDLMMLimitOrders.NotFilled.selector);
         vm.prank(maker);
         orders.claim(id, maker);
 
@@ -95,7 +95,7 @@ contract DLMMLimitOrdersTest is DLMMBase {
         assertEq(token1.balanceOf(maker), bal1 + a1);
         assertEq(uint8(orders.status(id)), uint8(IDLMMLimitOrders.Status.CLOSED));
         vm.prank(maker);
-        vm.expectRevert(DLMMLimitOrders.OrderClosed.selector);
+        vm.expectRevert(AsterraDLMMLimitOrders.OrderClosed.selector);
         orders.claim(id, maker);
     }
 
@@ -117,7 +117,7 @@ contract DLMMLimitOrdersTest is DLMMBase {
     function test_claimForRejectsUnfilled() public {
         uint256 id = _place(pool.activeId() + 3, IDLMMLimitOrders.Side.SELL_TOKEN0, 1e18);
         vm.prank(keeper);
-        vm.expectRevert(DLMMLimitOrders.NotFilled.selector);
+        vm.expectRevert(AsterraDLMMLimitOrders.NotFilled.selector);
         orders.claimFor(id);
     }
 
@@ -133,7 +133,7 @@ contract DLMMLimitOrdersTest is DLMMBase {
     function test_cancelReturnsInput() public {
         uint256 id = _place(pool.activeId() + 3, IDLMMLimitOrders.Side.SELL_TOKEN0, 3e18);
         vm.prank(keeper);
-        vm.expectRevert(DLMMLimitOrders.NotOrderOwner.selector);
+        vm.expectRevert(AsterraDLMMLimitOrders.NotOrderOwner.selector);
         orders.cancel(id, keeper);
         uint256 bal0 = token0.balanceOf(maker);
         vm.prank(maker);
@@ -146,7 +146,7 @@ contract DLMMLimitOrdersTest is DLMMBase {
 
     function test_unknownOrder() public {
         assertEq(uint8(orders.status(99)), uint8(IDLMMLimitOrders.Status.NONE));
-        vm.expectRevert(DLMMLimitOrders.UnknownOrder.selector);
+        vm.expectRevert(AsterraDLMMLimitOrders.UnknownOrder.selector);
         orders.claimFor(99);
     }
 

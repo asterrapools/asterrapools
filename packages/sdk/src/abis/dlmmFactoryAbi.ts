@@ -349,7 +349,7 @@ export const dlmmFactoryAbi = [
       {
         "name": "d",
         "type": "tuple",
-        "internalType": "struct DLMMFactory.VolatilityDefaults",
+        "internalType": "struct AsterraDLMMFactory.VolatilityDefaults",
         "components": [
           {
             "name": "filterPeriod",
@@ -421,7 +421,7 @@ export const dlmmFactoryAbi = [
       {
         "name": "",
         "type": "tuple",
-        "internalType": "struct DLMMFactory.VolatilityDefaults",
+        "internalType": "struct AsterraDLMMFactory.VolatilityDefaults",
         "components": [
           {
             "name": "filterPeriod",
@@ -587,7 +587,7 @@ export const dlmmFactoryAbi = [
         "name": "defaults",
         "type": "tuple",
         "indexed": false,
-        "internalType": "struct DLMMFactory.VolatilityDefaults",
+        "internalType": "struct AsterraDLMMFactory.VolatilityDefaults",
         "components": [
           {
             "name": "filterPeriod",

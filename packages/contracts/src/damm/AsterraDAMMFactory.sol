@@ -8,12 +8,12 @@ import {TickMath} from "v4-core/libraries/TickMath.sol";
 import {VolatilityFee} from "../libraries/VolatilityFee.sol";
 import {IDAMMFactory} from "../interfaces/IAsterraPools.sol";
 import {IAsterraHub, Venue} from "../interfaces/IAsterraHub.sol";
-import {DAMMPool} from "./DAMMPool.sol";
+import {AsterraDAMMPool} from "./AsterraDAMMPool.sol";
 
-/// @title DAMMFactory
+/// @title AsterraDAMMFactory
 /// @notice Permissionless factory for DAMM pools (BeaconProxy instances of one UpgradeableBeacon owned by the
 ///         protocol owner). Registers every pool in the AsterraHub (venue DAMM, poolId = pool address).
-contract DAMMFactory is IDAMMFactory, UUPSUpgradeable, Ownable2StepUpgradeable {
+contract AsterraDAMMFactory is IDAMMFactory, UUPSUpgradeable, Ownable2StepUpgradeable {
     /// @notice Full-range bounds (0 in CreateParams). Upper is MAX_SQRT_PRICE - 1 so ticks stay computable.
     uint160 public constant FULL_RANGE_LOWER = TickMath.MIN_SQRT_PRICE;
     uint160 public constant FULL_RANGE_UPPER = TickMath.MAX_SQRT_PRICE - 1;
@@ -60,7 +60,7 @@ contract DAMMFactory is IDAMMFactory, UUPSUpgradeable, Ownable2StepUpgradeable {
         _disableInitializers();
     }
 
-    /// @param beacon_ UpgradeableBeacon pointing at a DAMMPool implementation (owned by the protocol owner).
+    /// @param beacon_ UpgradeableBeacon pointing at a AsterraDAMMPool implementation (owned by the protocol owner).
     function initialize(address owner_, IAsterraHub hub_, address beacon_) external initializer {
         __Ownable_init(owner_);
         FactoryStorage storage $ = _s();
@@ -102,7 +102,7 @@ contract DAMMFactory is IDAMMFactory, UUPSUpgradeable, Ownable2StepUpgradeable {
             new BeaconProxy(
                 $.beacon,
                 abi.encodeCall(
-                    DAMMPool.initialize,
+                    AsterraDAMMPool.initialize,
                     (t0, t1, p.sqrtPriceX96, lower, upper, params, p.launchFeeStart, p.launchFeeDuration)
                 )
             )

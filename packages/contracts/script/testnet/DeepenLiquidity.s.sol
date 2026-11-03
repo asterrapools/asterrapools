@@ -17,8 +17,8 @@ import {AsterraPositions} from "../../src/periphery/AsterraPositions.sol";
 import {IAsterraPositions} from "../../src/interfaces/IAsterraPeriphery.sol";
 import {IAsterraHub, AssetClass} from "../../src/interfaces/IAsterraHub.sol";
 import {IDLMMFactory, IDAMMFactory} from "../../src/interfaces/IAsterraPools.sol";
-import {DLMMPool} from "../../src/dlmm/DLMMPool.sol";
-import {DAMMPool} from "../../src/damm/DAMMPool.sol";
+import {AsterraDLMMPool} from "../../src/dlmm/AsterraDLMMPool.sol";
+import {AsterraDAMMPool} from "../../src/damm/AsterraDAMMPool.sol";
 import {BinMath} from "../../src/dlmm/BinMath.sol";
 import {FaucetToken} from "../../src/mocks/FaucetToken.sol";
 import {MockPriceFeed} from "../../src/mocks/MockPriceFeed.sol";
@@ -149,7 +149,7 @@ contract DeepenLiquidity is Script {
         if (pool == address(0)) {
             pool = f.createPool(IDLMMFactory.CreateParams(t0, t1, BIN_STEP, active, 3000, 50_000));
         } else {
-            active = DLMMPool(pool).activeId();
+            active = AsterraDLMMPool(pool).activeId();
         }
         FaucetToken(stock).mint(DEPLOYER, stockPerBin * 11);
         _approve(stock, pool);
@@ -164,7 +164,7 @@ contract DeepenLiquidity is Script {
             if (id >= active) a0[i] = per0;
             if (id <= active) a1[i] = per1;
         }
-        DLMMPool(pool).addLiquidity(ids, a0, a1, DEPLOYER, deadline);
+        AsterraDLMMPool(pool).addLiquidity(ids, a0, a1, DEPLOYER, deadline);
     }
 
     /// @dev Largest bin id whose price is at or below `priceX128` (binary search; bin price grows with the id).
@@ -198,7 +198,7 @@ contract DeepenLiquidity is Script {
         _approve(stock, pool);
         _approve(ausd, pool);
         (uint256 a0, uint256 a1) = t0 == stock ? (stockAmt, usdAmt) : (usdAmt, stockAmt);
-        DAMMPool(pool).addLiquidity(a0, a1, 0, DEPLOYER, deadline);
+        AsterraDAMMPool(pool).addLiquidity(a0, a1, 0, DEPLOYER, deadline);
     }
 
     // ------------------------------------------------------------------ helpers

@@ -12,11 +12,11 @@ import {AsterraPositions} from "../src/periphery/AsterraPositions.sol";
 import {AsterraRouter} from "../src/periphery/AsterraRouter.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {IAsterraHub} from "../src/interfaces/IAsterraHub.sol";
-import {DLMMPool} from "../src/dlmm/DLMMPool.sol";
-import {DLMMFactory} from "../src/dlmm/DLMMFactory.sol";
-import {DLMMLimitOrders} from "../src/dlmm/DLMMLimitOrders.sol";
-import {DAMMPool} from "../src/damm/DAMMPool.sol";
-import {DAMMFactory} from "../src/damm/DAMMFactory.sol";
+import {AsterraDLMMPool} from "../src/dlmm/AsterraDLMMPool.sol";
+import {AsterraDLMMFactory} from "../src/dlmm/AsterraDLMMFactory.sol";
+import {AsterraDLMMLimitOrders} from "../src/dlmm/AsterraDLMMLimitOrders.sol";
+import {AsterraDAMMPool} from "../src/damm/AsterraDAMMPool.sol";
+import {AsterraDAMMFactory} from "../src/damm/AsterraDAMMFactory.sol";
 
 /// @notice Deploys the AsterraPools protocol (proxies + implementations) and writes addresses to the SDK.
 /// @dev Usage (see scripts/local-deploy.sh and docs/BLOCKERS.md):
@@ -101,17 +101,17 @@ contract Deploy is Script {
         AsterraHub hub = AsterraHub(c.hub);
         IAsterraHub ihub = IAsterraHub(c.hub);
 
-        m.dlmmBeacon = address(new UpgradeableBeacon(_verifiable("DLMMPool", type(DLMMPool).creationCode), DEPLOYER));
+        m.dlmmBeacon = address(new UpgradeableBeacon(_verifiable("AsterraDLMMPool", type(AsterraDLMMPool).creationCode), DEPLOYER));
         m.dlmmFactory = address(
-            new ERC1967Proxy(address(new DLMMFactory()), abi.encodeCall(DLMMFactory.initialize, (DEPLOYER, c.hub, m.dlmmBeacon)))
+            new ERC1967Proxy(address(new AsterraDLMMFactory()), abi.encodeCall(AsterraDLMMFactory.initialize, (DEPLOYER, c.hub, m.dlmmBeacon)))
         );
         m.dlmmLimitOrders = address(
-            new ERC1967Proxy(address(new DLMMLimitOrders()), abi.encodeCall(DLMMLimitOrders.initialize, (DEPLOYER, m.dlmmFactory)))
+            new ERC1967Proxy(address(new AsterraDLMMLimitOrders()), abi.encodeCall(AsterraDLMMLimitOrders.initialize, (DEPLOYER, m.dlmmFactory)))
         );
 
-        m.dammBeacon = address(new UpgradeableBeacon(address(new DAMMPool(ihub)), DEPLOYER));
+        m.dammBeacon = address(new UpgradeableBeacon(address(new AsterraDAMMPool(ihub)), DEPLOYER));
         m.dammFactory = address(
-            new ERC1967Proxy(address(new DAMMFactory()), abi.encodeCall(DAMMFactory.initialize, (DEPLOYER, ihub, m.dammBeacon)))
+            new ERC1967Proxy(address(new AsterraDAMMFactory()), abi.encodeCall(AsterraDAMMFactory.initialize, (DEPLOYER, ihub, m.dammBeacon)))
         );
 
         hub.setRegistrar(m.dlmmFactory, true);

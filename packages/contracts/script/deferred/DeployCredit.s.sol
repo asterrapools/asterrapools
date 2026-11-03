@@ -6,8 +6,8 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IAsterraHub} from "../../src/interfaces/IAsterraHub.sol";
 import {ILendingVault, IAsterraPositions, IAsterraRouter} from "../../src/interfaces/IAsterraPeriphery.sol";
-import {LendingVault} from "../../src/credit/LendingVault.sol";
-import {CreditManager} from "../../src/credit/CreditManager.sol";
+import {AsterraLendingVault} from "../../src/credit/AsterraLendingVault.sol";
+import {AsterraCreditManager} from "../../src/credit/AsterraCreditManager.sol";
 
 /// @notice Deploys the lending vault and credit manager on top of a deployed core (run after Deploy and,
 ///         on local/testnet, after SetupMarkets so the default aUSD vault asset exists).
@@ -31,20 +31,20 @@ contract DeployCredit is Script {
         vm.startBroadcast();
         vault = address(
             new ERC1967Proxy(
-                address(new LendingVault()),
-                abi.encodeCall(LendingVault.initialize, (IERC20(asset), IAsterraHub(hub), DEPLOYER, "Asterra USD Vault", "aeUSD"))
+                address(new AsterraLendingVault()),
+                abi.encodeCall(AsterraLendingVault.initialize, (IERC20(asset), IAsterraHub(hub), DEPLOYER, "Asterra USD Vault", "asUSD"))
             )
         );
         cm = address(
             new ERC1967Proxy(
-                address(new CreditManager()),
+                address(new AsterraCreditManager()),
                 abi.encodeCall(
-                    CreditManager.initialize,
+                    AsterraCreditManager.initialize,
                     (DEPLOYER, IAsterraHub(hub), IAsterraPositions(positions), ILendingVault(vault), IAsterraRouter(router))
                 )
             )
         );
-        LendingVault(vault).setCreditManager(cm);
+        AsterraLendingVault(vault).setCreditManager(cm);
         vm.stopBroadcast();
 
         console2.log("lendingVault ", vault);

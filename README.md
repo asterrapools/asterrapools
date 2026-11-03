@@ -63,10 +63,10 @@ proxies, so one upgrade reaches every pool. Apps always use the proxy address.
 | `AsterraHook` | Uniswap v4 hook: dynamic fee, oracle guard, circuit breaker, protocol fee |
 | `AsterraRouter` | Exact-input swaps across v4, DLMM, DAMM and launch curves |
 | `AsterraPositions` | ERC-721 v4 LP positions with locks and vesting |
-| `DLMMFactory`, `DLMMPool`, `DLMMLimitOrders` | Bin liquidity and single-bin limit orders |
-| `DAMMFactory`, `DAMMPool` | Single-range pools with launch fee schedules |
-| `AsterraLaunchpad`, `LaunchToken` | Bonding-curve launches graduating into v4 liquidity |
-| `LendingVault`, `CreditManager` | Borrow against LP positions |
+| `AsterraDLMMFactory`, `AsterraDLMMPool`, `AsterraDLMMLimitOrders` | Bin liquidity and single-bin limit orders |
+| `AsterraDAMMFactory`, `AsterraDAMMPool` | Single-range pools with launch fee schedules |
+| `AsterraLaunchpad`, `AsterraLaunchToken` | Bonding-curve launches graduating into v4 liquidity |
+| `AsterraLendingVault`, `AsterraCreditManager` | Borrow against LP positions |
 | `AsterraBuyback`, `AsterraToken` (ASTER) | Protocol revenue into ASTER, then burned |
 
 Addresses per network: [`packages/sdk/src/addresses`](packages/sdk/src/addresses), and the app's `/contracts` page.

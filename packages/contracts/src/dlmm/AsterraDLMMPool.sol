@@ -12,17 +12,17 @@ import {IAsterraHub} from "../interfaces/IAsterraHub.sol";
 import {VolatilityFee} from "../libraries/VolatilityFee.sol";
 import {BinMath} from "./BinMath.sol";
 
-/// @title DLMMPool
+/// @title AsterraDLMMPool
 /// @notice Discrete-bin liquidity market. Each bin is a constant-sum market at a fixed price
 ///         (token1 per token0) of (1 + binStep/10_000)^id. Bins above the active bin hold only token0,
 ///         bins below hold only token1 and the active bin may hold both.
-/// @dev Deployed as a BeaconProxy by DLMMFactory; storage is ERC-7201 namespaced.
+/// @dev Deployed as a BeaconProxy by AsterraDLMMFactory; storage is ERC-7201 namespaced.
 ///      Swap fees are charged on the input amount per bin and come from the VolatilityFee accumulator
 ///      (index = bin id). The LP part stays in the bin (auto-compounding), the protocol part accrues in
 ///      the pool until anyone calls `collectProtocolFees`, which forwards it to the hub's buyback.
 ///      Liquidity shares are internal (no ERC-1155); use `transferShares` to move them.
 ///      Reserves are book-kept internally: fee-on-transfer and rebasing tokens are NOT supported.
-contract DLMMPool is IDLMMPool, Initializable, ReentrancyGuardTransient {
+contract AsterraDLMMPool is IDLMMPool, Initializable, ReentrancyGuardTransient {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using BinMath for BinMath.Tree;

@@ -7,10 +7,10 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC4626Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {AsterraHub} from "../../src/core/AsterraHub.sol";
 import {IAsterraHub} from "../../src/interfaces/IAsterraHub.sol";
-import {LendingVault} from "../../src/credit/LendingVault.sol";
+import {AsterraLendingVault} from "../../src/credit/AsterraLendingVault.sol";
 import {MockToken} from "./mocks/MockToken.sol";
 
-contract LendingVaultV2 is LendingVault {
+contract LendingVaultV2 is AsterraLendingVault {
     function version() external pure returns (uint256) {
         return 2;
     }
@@ -29,14 +29,14 @@ abstract contract CreditBase is Test {
         hub.setFeeConfig(address(0xB0B), treasury, 1000);
     }
 
-    function _deployVault(MockToken usd) internal returns (LendingVault v) {
-        LendingVault impl = new LendingVault();
-        v = LendingVault(
+    function _deployVault(MockToken usd) internal returns (AsterraLendingVault v) {
+        AsterraLendingVault impl = new AsterraLendingVault();
+        v = AsterraLendingVault(
             address(
                 new ERC1967Proxy(
                     address(impl),
                     abi.encodeCall(
-                        LendingVault.initialize, (IERC20(address(usd)), IAsterraHub(address(hub)), owner, "Asterra USD Vault", "aUSD")
+                        AsterraLendingVault.initialize, (IERC20(address(usd)), IAsterraHub(address(hub)), owner, "Asterra USD Vault", "aUSD")
                     )
                 )
             )
@@ -45,7 +45,7 @@ abstract contract CreditBase is Test {
 }
 
 contract LendingVaultTest is CreditBase {
-    LendingVault vault;
+    AsterraLendingVault vault;
     MockToken usd;
     address lp = address(0x1111);
     address lp2 = address(0x2222);
@@ -105,10 +105,10 @@ contract LendingVaultTest is CreditBase {
     function test_onlyCreditManagerLends() public {
         _deposit(lp, 1000 * UNIT);
         vm.prank(borrower);
-        vm.expectRevert(LendingVault.NotCreditManager.selector);
+        vm.expectRevert(AsterraLendingVault.NotCreditManager.selector);
         vault.lend(1, borrower);
         vm.prank(borrower);
-        vm.expectRevert(LendingVault.NotCreditManager.selector);
+        vm.expectRevert(AsterraLendingVault.NotCreditManager.selector);
         vault.repayDebt(1, borrower);
     }
 
@@ -232,23 +232,23 @@ contract LendingVaultTest is CreditBase {
         vm.prank(owner);
         vault.setCaps(type(uint256).max, 500 * UNIT);
         vault.lend(500 * UNIT, borrower);
-        vm.expectRevert(LendingVault.BorrowCapExceeded.selector);
+        vm.expectRevert(AsterraLendingVault.BorrowCapExceeded.selector);
         vault.lend(1, borrower);
         vm.prank(owner);
         vault.setCaps(type(uint256).max, type(uint256).max);
-        vm.expectRevert(LendingVault.InsufficientCash.selector);
+        vm.expectRevert(AsterraLendingVault.InsufficientCash.selector);
         vault.lend(501 * UNIT, borrower);
     }
 
     function test_adminParamValidation() public {
         vm.startPrank(owner);
-        vm.expectRevert(LendingVault.InvalidParams.selector);
+        vm.expectRevert(AsterraLendingVault.InvalidParams.selector);
         vault.setRateModel(0, 0.04e18, 3e18, 0);
-        vm.expectRevert(LendingVault.InvalidParams.selector);
+        vm.expectRevert(AsterraLendingVault.InvalidParams.selector);
         vault.setRateModel(0, 0.04e18, 3e18, 10_000);
-        vm.expectRevert(LendingVault.InvalidParams.selector);
+        vm.expectRevert(AsterraLendingVault.InvalidParams.selector);
         vault.setRateModel(0, 0, 51e18, 5000);
-        vm.expectRevert(LendingVault.InvalidParams.selector);
+        vm.expectRevert(AsterraLendingVault.InvalidParams.selector);
         vault.setReserveFactor(5001);
         vault.setRateModel(0.01e18, 0.1e18, 1e18, 9000);
         vault.setReserveFactor(2000);
@@ -274,7 +274,7 @@ contract LendingVaultTest is CreditBase {
 
     function test_vault18Decimals() public {
         MockToken usd18 = new MockToken("tUSD18", 18);
-        LendingVault v = _deployVault(usd18);
+        AsterraLendingVault v = _deployVault(usd18);
         vm.prank(owner);
         v.setCreditManager(address(this));
         assertEq(v.decimals(), 24);
@@ -306,7 +306,7 @@ contract LendingVaultTest is CreditBase {
     }
 
     function test_implementationLocked() public {
-        LendingVault impl = new LendingVault();
+        AsterraLendingVault impl = new AsterraLendingVault();
         vm.expectRevert();
         impl.initialize(IERC20(address(usd)), IAsterraHub(address(hub)), owner, "x", "x");
     }

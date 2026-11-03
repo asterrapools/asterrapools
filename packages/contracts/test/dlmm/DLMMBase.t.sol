@@ -7,9 +7,9 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {AsterraHub} from "../../src/core/AsterraHub.sol";
 import {IDLMMFactory} from "../../src/interfaces/IAsterraPools.sol";
-import {DLMMPool} from "../../src/dlmm/DLMMPool.sol";
-import {DLMMFactory} from "../../src/dlmm/DLMMFactory.sol";
-import {DLMMLimitOrders} from "../../src/dlmm/DLMMLimitOrders.sol";
+import {AsterraDLMMPool} from "../../src/dlmm/AsterraDLMMPool.sol";
+import {AsterraDLMMFactory} from "../../src/dlmm/AsterraDLMMFactory.sol";
+import {AsterraDLMMLimitOrders} from "../../src/dlmm/AsterraDLMMLimitOrders.sol";
 
 contract TestToken is ERC20 {
     uint8 private immutable _dec;
@@ -30,11 +30,11 @@ contract TestToken is ERC20 {
 abstract contract DLMMBase is Test {
     AsterraHub hub;
     UpgradeableBeacon beacon;
-    DLMMFactory factory;
-    DLMMLimitOrders orders;
+    AsterraDLMMFactory factory;
+    AsterraDLMMLimitOrders orders;
     TestToken token0;
     TestToken token1;
-    DLMMPool pool;
+    AsterraDLMMPool pool;
 
     address owner = address(0xA11CE);
     address buyback = address(0xB0B);
@@ -45,11 +45,11 @@ abstract contract DLMMBase is Test {
     uint24 constant BASE_FEE = 3000; // 0.30%
     uint24 constant MAX_FEE = 50_000;
 
-    /// @dev DLMM_VERIFIABLE=1 runs the suite against verifiable/DLMMPool.bin, the bytecode testnet and mainnet deploy
+    /// @dev DLMM_VERIFIABLE=1 runs the suite against verifiable/AsterraDLMMPool.bin, the bytecode testnet and mainnet deploy
     ///      (compiled from the explorer source package, see scripts/build-verifiable.mjs).
     function _poolImpl() internal returns (address a) {
-        if (!vm.envOr("DLMM_VERIFIABLE", false)) return address(new DLMMPool());
-        bytes memory code = vm.parseBytes(vm.trim(vm.readFile(string.concat(vm.projectRoot(), "/verifiable/DLMMPool.bin"))));
+        if (!vm.envOr("DLMM_VERIFIABLE", false)) return address(new AsterraDLMMPool());
+        bytes memory code = vm.parseBytes(vm.trim(vm.readFile(string.concat(vm.projectRoot(), "/verifiable/AsterraDLMMPool.bin"))));
         assembly {
             a := create(0, add(code, 0x20), mload(code))
         }
@@ -61,17 +61,17 @@ abstract contract DLMMBase is Test {
             address(new ERC1967Proxy(address(new AsterraHub()), abi.encodeCall(AsterraHub.initialize, (owner))))
         );
         beacon = new UpgradeableBeacon(_poolImpl(), owner);
-        factory = DLMMFactory(
+        factory = AsterraDLMMFactory(
             address(
                 new ERC1967Proxy(
-                    address(new DLMMFactory()), abi.encodeCall(DLMMFactory.initialize, (owner, address(hub), address(beacon)))
+                    address(new AsterraDLMMFactory()), abi.encodeCall(AsterraDLMMFactory.initialize, (owner, address(hub), address(beacon)))
                 )
             )
         );
-        orders = DLMMLimitOrders(
+        orders = AsterraDLMMLimitOrders(
             address(
                 new ERC1967Proxy(
-                    address(new DLMMLimitOrders()), abi.encodeCall(DLMMLimitOrders.initialize, (owner, address(factory)))
+                    address(new AsterraDLMMLimitOrders()), abi.encodeCall(AsterraDLMMLimitOrders.initialize, (owner, address(factory)))
                 )
             )
         );
@@ -90,8 +90,8 @@ abstract contract DLMMBase is Test {
         _fund(address(this), 1e30);
     }
 
-    function _createPool(uint16 step, int24 active, uint24 base, uint24 max) internal returns (DLMMPool) {
-        return DLMMPool(
+    function _createPool(uint16 step, int24 active, uint24 base, uint24 max) internal returns (AsterraDLMMPool) {
+        return AsterraDLMMPool(
             factory.createPool(
                 IDLMMFactory.CreateParams({
                     tokenA: address(token0),
@@ -118,7 +118,7 @@ abstract contract DLMMBase is Test {
 
     /// @dev Spread liquidity: `perBin` token1 in each of `n` bins below active, token0 in `n` bins above,
     ///      and both in the active bin.
-    function _seed(DLMMPool p, address who, int24 n, uint256 perBin) internal returns (uint256[] memory shares) {
+    function _seed(AsterraDLMMPool p, address who, int24 n, uint256 perBin) internal returns (uint256[] memory shares) {
         int24 active = p.activeId();
         uint256 len = uint256(int256(n)) * 2 + 1;
         int24[] memory ids = new int24[](len);
@@ -144,12 +144,12 @@ abstract contract DLMMBase is Test {
         a[0] = v;
     }
 
-    function _add(DLMMPool p, address who, int24 id, uint256 x, uint256 y) internal returns (uint256) {
+    function _add(AsterraDLMMPool p, address who, int24 id, uint256 x, uint256 y) internal returns (uint256) {
         vm.prank(who);
         return p.addLiquidity(_one(id), _oneU(x), _oneU(y), who, block.timestamp)[0];
     }
 
-    function _swap(DLMMPool p, address who, bool zeroForOne, uint256 amountIn) internal returns (uint256) {
+    function _swap(AsterraDLMMPool p, address who, bool zeroForOne, uint256 amountIn) internal returns (uint256) {
         vm.prank(who);
         return p.swapExactInput(zeroForOne ? address(token0) : address(token1), amountIn, 0, who, block.timestamp);
     }

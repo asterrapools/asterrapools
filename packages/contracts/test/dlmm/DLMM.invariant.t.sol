@@ -3,14 +3,14 @@ pragma solidity 0.8.26;
 
 import {Test} from "forge-std/Test.sol";
 import {IDLMMLimitOrders} from "../../src/interfaces/IAsterraPools.sol";
-import {DLMMPool} from "../../src/dlmm/DLMMPool.sol";
-import {DLMMLimitOrders} from "../../src/dlmm/DLMMLimitOrders.sol";
+import {AsterraDLMMPool} from "../../src/dlmm/AsterraDLMMPool.sol";
+import {AsterraDLMMLimitOrders} from "../../src/dlmm/AsterraDLMMLimitOrders.sol";
 import {DLMMBase, TestToken} from "./DLMMBase.t.sol";
 
 /// @dev Random add / remove / swap / share transfer / limit order / protocol fee / time sequences on one DLMM pool.
 contract DLMMHandler is Test {
-    DLMMPool public pool;
-    DLMMLimitOrders public orders;
+    AsterraDLMMPool public pool;
+    AsterraDLMMLimitOrders public orders;
     TestToken public token0;
     TestToken public token1;
     address[4] public actors = [address(0xE1), address(0xE2), address(0xE3), address(0xE4)];
@@ -30,7 +30,7 @@ contract DLMMHandler is Test {
     uint256 public removes;
     uint256 public closedOrders;
 
-    constructor(DLMMPool p, DLMMLimitOrders o, TestToken t0, TestToken t1) {
+    constructor(AsterraDLMMPool p, AsterraDLMMLimitOrders o, TestToken t0, TestToken t1) {
         (pool, orders, token0, token1) = (p, o, t0, t1);
         for (uint256 i; i < actors.length; ++i) {
             token0.mint(actors[i], 1e36);

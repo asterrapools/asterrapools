@@ -17,12 +17,12 @@ import {Currency} from "v4-core/types/Currency.sol";
 import {ICreditManager, ILendingVault, IAsterraPositions, IAsterraRouter} from "../interfaces/IAsterraPeriphery.sol";
 import {IAsterraHub} from "../interfaces/IAsterraHub.sol";
 
-/// @title CreditManager
-/// @notice Borrow the LendingVault's stablecoin against pledged Asterra position NFTs. Collateral is valued from the
+/// @title AsterraCreditManager
+/// @notice Borrow the AsterraLendingVault's stablecoin against pledged Asterra position NFTs. Collateral is valued from the
 ///         position's token amounts at hub oracle prices; the stablecoin is treated as 1 USD. While pledged, LP fees
 ///         keep flowing to the loan owner through `harvest`, or can pay down the debt via `autoRepayFromFees`.
 ///         UUPS proxy, ERC-7201 storage.
-contract CreditManager is ICreditManager, IERC721Receiver, UUPSUpgradeable, Ownable2StepUpgradeable, ReentrancyGuardTransient {
+contract AsterraCreditManager is ICreditManager, IERC721Receiver, UUPSUpgradeable, Ownable2StepUpgradeable, ReentrancyGuardTransient {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.UintSet;
     using Math for uint256;

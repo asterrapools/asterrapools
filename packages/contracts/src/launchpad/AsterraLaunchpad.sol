@@ -21,7 +21,7 @@ import {LiquidityAmounts} from "v4-periphery/libraries/LiquidityAmounts.sol";
 import {IAsterraLaunchpad} from "../interfaces/IAsterraPools.sol";
 import {IAsterraPositions} from "../interfaces/IAsterraPeriphery.sol";
 import {IAsterraHub, Venue} from "../interfaces/IAsterraHub.sol";
-import {LaunchToken} from "./LaunchToken.sol";
+import {AsterraLaunchToken} from "./AsterraLaunchToken.sol";
 
 interface IWETH9 {
     function deposit() external payable;
@@ -84,7 +84,7 @@ contract AsterraLaunchpad is
     struct LaunchpadStorage {
         IAsterraHub hub;
         address weth;
-        address tokenImplementation;
+        address tokenBeacon; // UpgradeableBeacon of AsterraLaunchToken
         address poolManager;
         address positions;
         address hook;
@@ -111,7 +111,7 @@ contract AsterraLaunchpad is
         address owner_,
         IAsterraHub hub_,
         address weth_,
-        address tokenImplementation_,
+        address tokenBeacon_,
         address poolManager_,
         address positions_,
         address hook_
@@ -119,7 +119,7 @@ contract AsterraLaunchpad is
         __Ownable_init(owner_);
         __ReentrancyGuardTransient_init();
         LaunchpadStorage storage $ = _s();
-        ($.hub, $.weth, $.tokenImplementation) = (hub_, weth_, tokenImplementation_);
+        ($.hub, $.weth, $.tokenBeacon) = (hub_, weth_, tokenBeacon_);
         _setGraduationTargets(poolManager_, positions_, hook_);
         _setCurveConfig(1.5e18, 1_073_000_000e18, 800_000_000e18);
         _setFeeConfig(10_000, 0, 5000);
@@ -137,8 +137,8 @@ contract AsterraLaunchpad is
     {
         if (msg.value != 0 && initialBuyWeth != 0 && initialBuyWeth != msg.value) revert BadValue();
         LaunchpadStorage storage $ = _s();
-        token = LibClone.clone($.tokenImplementation);
-        LaunchToken(token).initialize(name, symbol, address(this));
+        token = LibClone.deployERC1967BeaconProxy($.tokenBeacon);
+        AsterraLaunchToken(token).initialize(name, symbol, address(this));
 
         Config memory c = $.config;
         Launch storage l = $.launches[token];
@@ -357,8 +357,8 @@ contract AsterraLaunchpad is
         return _s().weth;
     }
 
-    function tokenImplementation() external view returns (address) {
-        return _s().tokenImplementation;
+    function tokenBeacon() external view returns (address) {
+        return _s().tokenBeacon;
     }
 
     function graduationTargets() external view returns (address poolManager, address positions, address hook) {

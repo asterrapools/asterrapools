@@ -12,15 +12,17 @@ import {AsterraHook} from "../../src/hooks/AsterraHook.sol";
 import {AsterraPositions} from "../../src/periphery/AsterraPositions.sol";
 import {AsterraRouter} from "../../src/periphery/AsterraRouter.sol";
 import {IAsterraHub} from "../../src/interfaces/IAsterraHub.sol";
-import {DLMMFactory} from "../../src/dlmm/DLMMFactory.sol";
-import {DLMMLimitOrders} from "../../src/dlmm/DLMMLimitOrders.sol";
-import {DLMMPool} from "../../src/dlmm/DLMMPool.sol";
-import {DAMMFactory} from "../../src/damm/DAMMFactory.sol";
-import {DAMMPool} from "../../src/damm/DAMMPool.sol";
+import {AsterraDLMMFactory} from "../../src/dlmm/AsterraDLMMFactory.sol";
+import {AsterraDLMMLimitOrders} from "../../src/dlmm/AsterraDLMMLimitOrders.sol";
+import {AsterraDLMMPool} from "../../src/dlmm/AsterraDLMMPool.sol";
+import {AsterraDAMMFactory} from "../../src/damm/AsterraDAMMFactory.sol";
+import {AsterraDAMMPool} from "../../src/damm/AsterraDAMMPool.sol";
 import {AsterraLaunchpad} from "../../src/launchpad/AsterraLaunchpad.sol";
 import {AsterraBuyback} from "../../src/buyback/AsterraBuyback.sol";
-import {LendingVault} from "../../src/credit/LendingVault.sol";
-import {CreditManager} from "../../src/credit/CreditManager.sol";
+import {AsterraLendingVault} from "../../src/credit/AsterraLendingVault.sol";
+import {AsterraCreditManager} from "../../src/credit/AsterraCreditManager.sol";
+import {AsterraToken} from "../../src/token/AsterraToken.sol";
+import {AsterraLaunchToken} from "../../src/launchpad/AsterraLaunchToken.sol";
 
 /// @notice Validates and rolls out an implementation upgrade for one Asterra proxy or pool beacon.
 ///
@@ -34,7 +36,8 @@ import {CreditManager} from "../../src/credit/CreditManager.sol";
 /// Required env: NETWORK (local|testnet|mainnet), CONTRACT (one name, or several separated by commas), REFERENCE_BUILD_INFO (directory) and REFERENCE_NAME (the
 /// directory's name; the reference contract is "<REFERENCE_NAME>:<ContractName>").
 /// CONTRACT is one of: hub hook router positions dlmmFactory dlmmLimitOrders dlmmPool dammFactory dammPool launchpad
-/// buyback lendingVault creditManager. `dlmmPool` and `dammPool` upgrade the pool beacon read from the factory.
+/// launchToken aster buyback lendingVault creditManager. `dlmmPool`, `dammPool` and `launchToken` upgrade the beacon read
+/// from their factory or launchpad.
 /// Optional: PROXY overrides the address read from packages/sdk/src/addresses/<network>.json.
 ///
 /// Usage (see docs/BLOCKERS.md B10 for the exact commands). Run it with FOUNDRY_PROFILE=upgrade FOUNDRY_OUT=out-upgrade:
@@ -127,15 +130,17 @@ contract Upgrade is Script {
         else if (h == keccak256("hook")) t = Target("AsterraHook.sol:AsterraHook", vm.parseJsonAddress(json, ".hook"), false, true);
         else if (h == keccak256("router")) t = Target("AsterraRouter.sol:AsterraRouter", vm.parseJsonAddress(json, ".router"), false, true);
         else if (h == keccak256("positions")) t = Target("AsterraPositions.sol:AsterraPositions", vm.parseJsonAddress(json, ".positions"), false, true);
-        else if (h == keccak256("dlmmFactory")) t = Target("DLMMFactory.sol:DLMMFactory", vm.parseJsonAddress(json, ".dlmmFactory"), false, false);
-        else if (h == keccak256("dlmmLimitOrders")) t = Target("DLMMLimitOrders.sol:DLMMLimitOrders", vm.parseJsonAddress(json, ".dlmmLimitOrders"), false, false);
-        else if (h == keccak256("dammFactory")) t = Target("DAMMFactory.sol:DAMMFactory", vm.parseJsonAddress(json, ".dammFactory"), false, false);
-        else if (h == keccak256("dlmmPool")) t = Target("DLMMPool.sol:DLMMPool", DLMMFactory(vm.parseJsonAddress(json, ".dlmmFactory")).beacon(), true, false);
-        else if (h == keccak256("dammPool")) t = Target("DAMMPool.sol:DAMMPool", DAMMFactory(vm.parseJsonAddress(json, ".dammFactory")).beacon(), true, true);
+        else if (h == keccak256("dlmmFactory")) t = Target("AsterraDLMMFactory.sol:AsterraDLMMFactory", vm.parseJsonAddress(json, ".dlmmFactory"), false, false);
+        else if (h == keccak256("dlmmLimitOrders")) t = Target("AsterraDLMMLimitOrders.sol:AsterraDLMMLimitOrders", vm.parseJsonAddress(json, ".dlmmLimitOrders"), false, false);
+        else if (h == keccak256("dammFactory")) t = Target("AsterraDAMMFactory.sol:AsterraDAMMFactory", vm.parseJsonAddress(json, ".dammFactory"), false, false);
+        else if (h == keccak256("dlmmPool")) t = Target("AsterraDLMMPool.sol:AsterraDLMMPool", AsterraDLMMFactory(vm.parseJsonAddress(json, ".dlmmFactory")).beacon(), true, false);
+        else if (h == keccak256("dammPool")) t = Target("AsterraDAMMPool.sol:AsterraDAMMPool", AsterraDAMMFactory(vm.parseJsonAddress(json, ".dammFactory")).beacon(), true, true);
         else if (h == keccak256("launchpad")) t = Target("AsterraLaunchpad.sol:AsterraLaunchpad", _hidden(json, "launchpad"), false, false);
+        else if (h == keccak256("launchToken")) t = Target("AsterraLaunchToken.sol:AsterraLaunchToken", AsterraLaunchpad(payable(_hidden(json, "launchpad"))).tokenBeacon(), true, false);
+        else if (h == keccak256("aster")) t = Target("AsterraToken.sol:AsterraToken", _hidden(json, "aster"), false, false);
         else if (h == keccak256("buyback")) t = Target("AsterraBuyback.sol:AsterraBuyback", _hidden(json, "buyback"), false, false);
-        else if (h == keccak256("lendingVault")) t = Target("LendingVault.sol:LendingVault", _hidden(json, "lendingVault"), false, false);
-        else if (h == keccak256("creditManager")) t = Target("CreditManager.sol:CreditManager", _hidden(json, "creditManager"), false, false);
+        else if (h == keccak256("lendingVault")) t = Target("AsterraLendingVault.sol:AsterraLendingVault", _hidden(json, "lendingVault"), false, false);
+        else if (h == keccak256("creditManager")) t = Target("AsterraCreditManager.sol:AsterraCreditManager", _hidden(json, "creditManager"), false, false);
         else revert("Upgrade: unknown CONTRACT");
     }
 
@@ -158,15 +163,17 @@ contract Upgrade is Script {
         if (h == keccak256("hook")) return address(new AsterraHook(pm));
         if (h == keccak256("router")) return address(new AsterraRouter(pm, vm.parseJsonAddress(json, ".weth")));
         if (h == keccak256("positions")) return address(new AsterraPositions(pm));
-        if (h == keccak256("dlmmFactory")) return address(new DLMMFactory());
-        if (h == keccak256("dlmmLimitOrders")) return address(new DLMMLimitOrders());
-        if (h == keccak256("dammFactory")) return address(new DAMMFactory());
-        if (h == keccak256("dlmmPool")) return _verifiable("DLMMPool", type(DLMMPool).creationCode);
-        if (h == keccak256("dammPool")) return address(new DAMMPool(IAsterraHub(vm.parseJsonAddress(json, ".hub"))));
+        if (h == keccak256("dlmmFactory")) return address(new AsterraDLMMFactory());
+        if (h == keccak256("dlmmLimitOrders")) return address(new AsterraDLMMLimitOrders());
+        if (h == keccak256("dammFactory")) return address(new AsterraDAMMFactory());
+        if (h == keccak256("dlmmPool")) return _verifiable("AsterraDLMMPool", type(AsterraDLMMPool).creationCode);
+        if (h == keccak256("dammPool")) return address(new AsterraDAMMPool(IAsterraHub(vm.parseJsonAddress(json, ".hub"))));
         if (h == keccak256("launchpad")) return address(new AsterraLaunchpad());
+        if (h == keccak256("launchToken")) return address(new AsterraLaunchToken());
+        if (h == keccak256("aster")) return address(new AsterraToken());
         if (h == keccak256("buyback")) return address(new AsterraBuyback());
-        if (h == keccak256("lendingVault")) return address(new LendingVault());
-        if (h == keccak256("creditManager")) return address(new CreditManager());
+        if (h == keccak256("lendingVault")) return address(new AsterraLendingVault());
+        if (h == keccak256("creditManager")) return address(new AsterraCreditManager());
         revert("Upgrade: unknown CONTRACT");
     }
 

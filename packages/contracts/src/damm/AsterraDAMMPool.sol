@@ -17,14 +17,14 @@ import {VolatilityFee} from "../libraries/VolatilityFee.sol";
 import {IDAMMPool} from "../interfaces/IAsterraPools.sol";
 import {IAsterraHub} from "../interfaces/IAsterraHub.sol";
 
-/// @title DAMMPool
+/// @title AsterraDAMMPool
 /// @notice Single-range concentrated AMM (v3 math over one [lower, upper] sqrt-price range) with fungible,
 ///         non-transferable shares (1 share == 1 liquidity unit), a volatility fee and an optional
-///         decaying launch fee. Deployed as a BeaconProxy by DAMMFactory.
+///         decaying launch fee. Deployed as a BeaconProxy by AsterraDAMMFactory.
 /// @dev Fee-on-transfer and rebasing tokens are NOT supported: the pool assumes `transferFrom(amount)`
 ///      delivers exactly `amount`. Reserves are tracked explicitly; LP fees and protocol fees are held on
 ///      top of the reserves and never re-enter the curve.
-contract DAMMPool is IDAMMPool, Initializable, ReentrancyGuardTransientUpgradeable {
+contract AsterraDAMMPool is IDAMMPool, Initializable, ReentrancyGuardTransientUpgradeable {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
 
