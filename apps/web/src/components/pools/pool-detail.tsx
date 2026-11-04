@@ -36,9 +36,10 @@ function recentHours(values: number[]): Point[] {
 }
 
 /**
- * Price, volume, TVL and fee history of one pool from its hourly stats (last 30 days). A young pool never shows an
- * empty chart: price falls back to the 24h sparkline and TVL to the current value, and tabs without any recorded
- * volume or fees are left out until the first trade.
+ * Price, volume, TVL and fee history of one pool from its hourly stats (last 30 days). A pool with a short trading
+ * history arrives trade by trade (price) and in minute buckets (volume, fees), so its first minutes of trading already
+ * move the chart. A young pool never shows an empty chart: price falls back to the 24h sparkline and TVL to the
+ * current value, and tabs without any recorded volume or fees are left out until the first trade.
  */
 function PoolCharts({ pool }: { pool: ApiPoolDetail }) {
   const candles = pool.candles ?? [];
@@ -47,9 +48,9 @@ function PoolCharts({ pool }: { pool: ApiPoolDetail }) {
   const spark = pool.sparkline.length ? pool.sparkline : [];
   const series: Record<ChartTab, Point[]> = {
     price: price.length >= 2 ? price : spark.length ? recentHours(spark.length >= 2 ? spark : [spark[0]!, spark[0]!]) : [],
-    volume: candles.map((c) => ({ t: c.t, v: c.volume_usd ?? 0 })),
+    volume: (pool.flow ?? candles).map((c) => ({ t: c.t, v: c.volume_usd ?? 0 })),
     tvl: tvl.length >= 2 ? tvl : pool.tvl_usd > 0 ? recentHours(Array(24).fill(pool.tvl_usd)) : [],
-    fees: candles.map((c) => ({ t: c.t, v: c.fees_usd ?? 0 })),
+    fees: (pool.flow ?? candles).map((c) => ({ t: c.t, v: c.fees_usd ?? 0 })),
   };
   const has = (k: ChartTab) => (k === "price" || k === "tvl" ? series[k].length >= 2 : series[k].some((p) => p.v > 0));
   const tabs = TABS.filter((t) => has(t.key));
