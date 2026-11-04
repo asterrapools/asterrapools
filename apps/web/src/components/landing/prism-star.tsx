@@ -37,49 +37,79 @@ const smooth = (t: number) => t * t * (3 - 2 * t);
 
 const PRISM = ["#dfff1f", "#19e6ff", "#2b4bff", "#8b3cff"];
 
-function starShape(r: number, pinch: number) {
+/**
+ * The mark as drawn in asterra-mark-512.png, in its pixels: centre, distance to the top, side and bottom tips, and the
+ * bend of the concave edges (quadratic control point at `pinch` of the way to the corner, fitted to the artwork: 2 px rms).
+ * The solid is cut to this outline and the artwork itself is its face, so the 3D star shows the logo's exact colours.
+ */
+const MARK = { src: "/brand/asterra-mark-512.png", size: 512, cx: 255.5, cy: 244, up: 221, side: 240.5, down: 244, pinch: 0.235 };
+const PX = 1.45 / MARK.side; // world units per logo pixel
+
+function starShape() {
   const tips = [
-    [0, r * 1.06],
-    [r * 1.02, 0],
-    [0, -r * 1.06],
-    [-r, 0],
+    [0, MARK.up * PX],
+    [MARK.side * PX, 0],
+    [0, -MARK.down * PX],
+    [-MARK.side * PX, 0],
   ] as const;
   const s = new THREE.Shape();
   s.moveTo(tips[0][0], tips[0][1]);
   for (let i = 0; i < 4; i++) {
     const a = tips[i]!;
     const b = tips[(i + 1) % 4]!;
-    // the control point sits near the centre, which bends each side inward like the logo's concave edges
-    s.quadraticCurveTo((a[0] + b[0]) * pinch, (a[1] + b[1]) * pinch, b[0], b[1]);
+    s.quadraticCurveTo((a[0] + b[0]) * MARK.pinch, (a[1] + b[1]) * MARK.pinch, b[0], b[1]);
   }
   return s;
 }
 
-function prismTexture() {
+/** The logo artwork as a texture; the prism gradient stands in until the image loads, then `onReady` runs. */
+function logoTexture(onReady: () => void) {
   const c = document.createElement("canvas");
-  c.width = c.height = 512;
+  c.width = c.height = MARK.size;
   const g = c.getContext("2d")!;
-  const lin = g.createLinearGradient(0, 0, 512, 512);
+  const lin = g.createLinearGradient(0, 0, MARK.size, MARK.size);
   PRISM.forEach((col, i) => lin.addColorStop(i / (PRISM.length - 1), col));
   g.fillStyle = lin;
-  g.fillRect(0, 0, 512, 512);
-  // the two sweeping bands of the mark, lower right
-  g.lineCap = "round";
-  for (const [w, col, off] of [
-    [46, "#0b2bff", 0],
-    [40, "#7a1cff", 70],
-  ] as const) {
-    g.strokeStyle = col;
-    g.lineWidth = w;
-    g.globalAlpha = 0.85;
-    g.beginPath();
-    g.moveTo(230 + off, 520);
-    g.quadraticCurveTo(300 + off, 300 + off * 0.3, 520, 250 + off * 0.6);
-    g.stroke();
-  }
+  g.fillRect(0, 0, MARK.size, MARK.size);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
+  const img = new Image();
+  img.onload = () => {
+    g.clearRect(0, 0, MARK.size, MARK.size);
+    // bleed the edge colours outward with slightly enlarged copies underneath: the bevel and side walls sample just
+    // outside the outline and must keep the logo's own colours there, not the transparent field around it
+    for (const k of [1.14, 1.09, 1.05, 1.025]) {
+      g.setTransform(k, 0, 0, k, MARK.cx * (1 - k), MARK.cy * (1 - k));
+      g.drawImage(img, 0, 0, MARK.size, MARK.size);
+    }
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.drawImage(img, 0, 0, MARK.size, MARK.size);
+    t.needsUpdate = true;
+    onReady();
+  };
+  img.src = MARK.src;
   return t;
+}
+
+/**
+ * A hardware WebGL renderer, or null when there is no WebGL or only a software one (GPU-blocklisted browser), where a
+ * still image is smoother than a scene.
+ */
+export function hardwareRenderer(antialias: boolean): THREE.WebGLRenderer | null {
+  let renderer: THREE.WebGLRenderer | undefined;
+  try {
+    // failIfMajorPerformanceCaveat: no software rendering
+    renderer = new THREE.WebGLRenderer({ antialias, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: true });
+    // not every browser honours the flag (headless Chrome hands out SwiftShader anyway), so check the renderer too
+    const gl = renderer.getContext();
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    const name = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+    if (!/swiftshader|llvmpipe|softpipe|software|basic render/i.test(name)) return renderer;
+  } catch {
+    // no WebGL
+  }
+  renderer?.dispose();
+  return null;
 }
 
 const STREAM_VERT = /* glsl */ `
@@ -135,20 +165,9 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
   React.useEffect(() => {
     const el = host.current;
     if (!el) return;
-    let renderer: THREE.WebGLRenderer;
-    try {
-      // failIfMajorPerformanceCaveat: no software rendering (a GPU-blocklisted browser); the static mark is smoother
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: true });
-      // not every browser honours the flag (headless Chrome hands out SwiftShader anyway), so check the renderer too
-      const gl = renderer.getContext();
-      const info = gl.getExtension("WEBGL_debug_renderer_info");
-      const name = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
-      if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(name)) {
-        renderer.dispose();
-        throw new Error(`software WebGL: ${name}`);
-      }
-    } catch {
-      // WebGL unavailable: swap in the static mark on the next frame
+    const renderer = hardwareRenderer(true);
+    if (!renderer) {
+      // WebGL unavailable or software only: swap in the static mark on the next frame
       const id = requestAnimationFrame(() => setFailed(true));
       return () => cancelAnimationFrame(id);
     }
@@ -172,7 +191,7 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     scene.environmentIntensity = 0.55;
 
     // ---- star
-    const geo = new THREE.ExtrudeGeometry(starShape(1.45, 0.1), {
+    const geo = new THREE.ExtrudeGeometry(starShape(), {
       depth: 0.22,
       bevelEnabled: true,
       bevelThickness: 0.07,
@@ -180,29 +199,39 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
       bevelSegments: 8,
       curveSegments: 64,
     });
-    geo.center();
+    // texture coordinates straight from the logo's pixels (before centring moves the solid), front face and walls alike
     const pos = geo.attributes.position!;
     const uv = new Float32Array(pos.count * 2);
     for (let i = 0; i < pos.count; i++) {
-      uv[i * 2] = (pos.getX(i) + 1.5) / 3;
-      uv[i * 2 + 1] = 1 - (pos.getY(i) + 1.55) / 3.1;
+      uv[i * 2] = (MARK.cx + pos.getX(i) / PX) / MARK.size;
+      uv[i * 2 + 1] = 1 - (MARK.cy - pos.getY(i) / PX) / MARK.size;
     }
     geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
-    const tex = prismTexture();
+    geo.center();
+    let alive = true;
+    // a still (reduced motion) frame drawn before the artwork arrived must be redrawn with it
+    const tex = logoTexture(() => alive && reduced && frame(performance.now()));
+    tex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+    // mostly self-lit by the artwork and kept out of tone mapping, so the colours read as the logo from any angle; the
+    // dimmed diffuse and the clearcoat only add shading and gloss. No iridescence or sheen: they tinted it blue-violet.
     const starMat = new THREE.MeshPhysicalMaterial({
       map: tex,
+      // emissive + lit diffuse peak near 1.0: past it the channels clip and the lime and cyan wash out to pastel
+      color: new THREE.Color(0.18, 0.18, 0.18),
       emissive: new THREE.Color("#ffffff"),
       emissiveMap: tex,
-      emissiveIntensity: 0.22,
-      roughness: 0.18,
-      metalness: 0.15,
-      clearcoat: 1,
-      clearcoatRoughness: 0.06,
-      iridescence: 0.75,
-      iridescenceIOR: 1.45,
-      sheen: 0.4,
-      sheenColor: new THREE.Color("#8b3cff"),
+      emissiveIntensity: 0.9,
+      roughness: 0.35,
+      metalness: 0,
+      // the broad base highlight lifted every dark channel (violet turned lilac); the tight clearcoat keeps the gloss
+      specularIntensity: 0,
+      clearcoat: 0.7,
+      clearcoatRoughness: 0.08,
+      // its own, weak reflection of the studio: the full one laid a white haze over the colours
+      envMap: env,
+      envMapIntensity: 0.18,
     });
+    starMat.toneMapped = false;
     // shape morph in the vertex shader (cheap: a few ALU per vertex, no new geometry)
     const morph = { uInflate: { value: 0 }, uRound: { value: 0 }, uTwist: { value: 0 } };
     starMat.onBeforeCompile = (shader) => {
@@ -332,7 +361,7 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
       // light pages need deeper stops: the neon lime disappears on white
       uniforms.uC0.value.set(themeDark ? PRISM[0]! : "#7fa000");
       uniforms.uC1.value.set(themeDark ? PRISM[1]! : "#0096be");
-      starMat.emissiveIntensity = themeDark ? 0.22 : 0.12;
+      starMat.emissiveIntensity = themeDark ? 0.9 : 0.8;
       renderer.toneMappingExposure = themeDark ? 1.05 : 0.95;
       sMat.needsUpdate = true;
     };
@@ -504,6 +533,7 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     } else loop();
 
     return () => {
+      alive = false;
       cancelAnimationFrame(raf);
       cleanupExtra();
       document.removeEventListener("visibilitychange", onVis);

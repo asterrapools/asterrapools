@@ -168,6 +168,22 @@
     mask-composite: exclude;
     pointer-events: none;
   }
+  /* landing sky (components/landing/landing.tsx): prism nebulae drifting behind the star field */
+  .nebula {
+    background:
+      radial-gradient(40vmax 30vmax at 80% 16%, rgb(var(--cyan) / 0.11), transparent 70%),
+      radial-gradient(44vmax 32vmax at 10% 80%, rgb(var(--violet) / 0.13), transparent 70%),
+      radial-gradient(34vmax 26vmax at 58% 60%, rgb(var(--cobalt) / 0.12), transparent 70%),
+      radial-gradient(26vmax 18vmax at 22% 14%, rgb(var(--lime) / 0.05), transparent 70%);
+    animation: nebula-drift 50s ease-in-out infinite alternate;
+  }
+  :root:not(.dark) .nebula {
+    opacity: 0.55;
+  }
+  @keyframes nebula-drift {
+    from { transform: translate3d(-2.5%, -1.5%, 0) scale(1); }
+    to { transform: translate3d(2.5%, 2%, 0) scale(1.06); }
+  }
   .grid-paper {
     background-image:
       linear-gradient(rgb(var(--border) / 0.5) 1px, transparent 1px),

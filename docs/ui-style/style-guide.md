@@ -46,7 +46,11 @@ All fonts are SIL OFL.
 
 - `.fx-prism`: hover lifts 1px and fades in a panning prism ring; press squeezes to 0.97 and flares the ring.
 - Sections reveal once on scroll (CSS transition, no scroll library). Everything respects `prefers-reduced-motion`.
-- The hero three.js scene renders only while visible and draws a single frame with reduced motion.
+- The hero three.js scene renders only while visible and draws a single frame with reduced motion. The star's face is
+  the logo artwork itself (`asterra-mark-512.png`), self-lit and outside tone mapping so its colours match the mark.
+- The landing sits in deep space: drifting prism nebulae (`.nebula`) and a WebGL star field on its own canvas
+  (`space-backdrop.tsx`) that leans toward the pointer with depth parallax and parts and flares around the cursor. Light
+  theme: crisp ink and prism dots, no halos.
 
 ## Content rules
 

@@ -11,7 +11,9 @@
     "test": "turbo run test",
     "contracts:test": "cd packages/contracts && forge test",
     "local:chain": "bash scripts/local-chain.sh",
-    "local:deploy": "bash scripts/local-deploy.sh"
+    "local:deploy": "bash scripts/local-deploy.sh",
+    "testnet:verify": "bash scripts/verify-contracts.sh testnet",
+    "mainnet:verify": "bash scripts/verify-contracts.sh mainnet"
   },
   "devDependencies": {
     "turbo": "^2.5.0",

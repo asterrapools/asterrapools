@@ -111,6 +111,7 @@ pnpm lint && pnpm typecheck && pnpm test
 # Run in: repo root
 bash scripts/testnet-deploy.sh --broadcast           # contracts (asks for the keystore password once)
 bash scripts/vps-deploy.sh testnet   # VPS stack, HTTPS, migrations, addresses
+pnpm testnet:verify                  # verify every contract on the explorer (interactive, made for screen recording)
 ```
 
 CI (`.github/workflows/build.yml`) only builds: checks on every push, and the web image for the `testnet` and
