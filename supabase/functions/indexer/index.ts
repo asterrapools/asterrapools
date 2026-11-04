@@ -17,7 +17,7 @@ import {
   type Role,
 } from "../_shared/abis.ts";
 import { backoffMs, ChunkSizer, chunked, DEFAULT_CHUNK, nextRange, planStart, safeHead } from "../_shared/chunking.ts";
-import { amountsForLiquidity, big, isStableToken, priceFromBin, priceFromSqrtX96, swapUsd, toHuman } from "../_shared/math.ts";
+import { amountsForLiquidity, big, isStableToken, priceFromAmounts, priceFromBin, priceFromSqrtX96, swapUsd, toHuman } from "../_shared/math.ts";
 import { decodeLog, dedupeRawLogs, type DecodedLog, logTimestamp, type RawLog, sortLogs, TOPICS, UINT64_MAX, ZERO_ADDRESS } from "../_shared/normalize.ts";
 import { derivePrices, scaleE18 } from "../_shared/pricing.ts";
 import { NATIVE } from "../_shared/external.ts";
@@ -605,7 +605,10 @@ async function indexChain(db: SupabaseClient, chainId: number, deadline: number,
           ...base(l, t), pool_id: p.pool_id, venue: p.venue, sender: a.sender, recipient: a.recipient, token_in: a.tokenIn, token_out: a.tokenOut,
           amount_in: big(amtIn), amount_out: big(amtOut), fee_amount: big(a.feeAmount), protocol_fee_amount: big(a.protocolFeeAmount),
           delta0: big(zeroForOne ? intoCurve : -amtOut), delta1: big(zeroForOne ? -amtOut : intoCurve),
-          price: p.venue === "DLMM" ? binPrice(p, Number(a.indexAfter)) : null,
+          // DLMM: the active bin after the swap; DAMM: the event has no sqrt price, so the execution price, fee excluded
+          price: p.venue === "DLMM"
+            ? binPrice(p, Number(a.indexAfter))
+            : priceFromAmounts(zeroForOne, intoCurve, amtOut, decimalsOf(p.token0), decimalsOf(p.token1)),
           ...usdOf(a.tokenIn, amtIn, a.tokenOut, amtOut, BigInt(a.feeAmount)),
         });
         if (p.venue === "DLMM") b.add("pools", p.pool_id, { chain_id: chainId, pool_id: p.pool_id, ...poolKeys(p.pool_id), active_index: Number(a.indexAfter), price: binPrice(p, Number(a.indexAfter)) }, true);

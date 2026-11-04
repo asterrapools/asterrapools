@@ -156,7 +156,9 @@ async function poolDetail(chain: number, id: string) {
   trades.reverse();
   const firstHour = new Date(trades[0]!.ts).setUTCMinutes(0, 0, 0);
   const prior = candles.filter((c) => Date.parse(c.t) < firstHour).at(-1);
-  return { ...detail, price_series: tradePrices(trades, prior ? { t: prior.t, price: prior.close } : null), flow: tradeFlow(trades) };
+  const prices = tradePrices(trades, prior ? { t: prior.t, price: prior.close } : null);
+  // trades without a recorded price keep the hourly line rather than an empty one
+  return { ...detail, ...(prices.length >= 2 ? { price_series: prices } : {}), flow: tradeFlow(trades) };
 }
 
 async function dashboard(chain: number) {
