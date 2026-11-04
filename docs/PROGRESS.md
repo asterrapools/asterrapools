@@ -18,7 +18,8 @@
 | Software-WebGL browsers (GPU blocklisted) get the static mark instead of the scene: dropped/partial frames while scrolling 78% → 10% | measured 2026-11-04 |
 | Star morphs per section (gem, ribbon, coin; bin ring Curve → Bid-Ask → Spot) and reacts to scroll speed | done |
 | Near full-width layout (container up to 2240px, gutter only) | done |
-| 3D star wears the logo artwork (outline fitted to the mark, 2 px rms), true colours in both themes and reduced motion | done, e2e guarded |
+| 3D star wears the logo artwork (outline fitted to the mark, 2 px rms), true colours in both themes and reduced motion; hidden until the artwork loads, so no placeholder flash on slow networks | done, e2e guarded |
+| Smoothness with the space backdrop (2026-11-04, A/B against the previous build, same machine): laptop 58 vs 58 fps, phone CPU 4x 57 vs 58, budget CPU 6x 50-51 vs 50-52; p95 frame unchanged | measured |
 | Landing space backdrop: nebulae + star field with cursor parallax, parting and flare | done, e2e guarded |
 | Header nav sits beside the logo | done, e2e guarded |
 | DLMM pools get a price from their active bin on every indexer run (before: only after a swap, so no price chart) | done |

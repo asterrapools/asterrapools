@@ -62,7 +62,7 @@ function starShape() {
   return s;
 }
 
-/** The logo artwork as a texture; the prism gradient stands in until the image loads, then `onReady` runs. */
+/** The logo artwork as a texture; `onReady` runs once it is drawn (or failed to load: the prism gradient stays). */
 function logoTexture(onReady: () => void) {
   const c = document.createElement("canvas");
   c.width = c.height = MARK.size;
@@ -87,6 +87,7 @@ function logoTexture(onReady: () => void) {
     t.needsUpdate = true;
     onReady();
   };
+  img.onerror = onReady;
   img.src = MARK.src;
   return t;
 }
@@ -209,8 +210,13 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
     geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
     geo.center();
     let alive = true;
-    // a still (reduced motion) frame drawn before the artwork arrived must be redrawn with it
-    const tex = logoTexture(() => alive && reduced && frame(performance.now()));
+    // the star stays hidden until it wears the artwork: no flash of placeholder colours on a slow network. A still
+    // (reduced motion) frame drawn before then is redrawn with it.
+    const tex = logoTexture(() => {
+      if (!alive) return;
+      star.visible = true;
+      if (reduced) frame(performance.now());
+    });
     tex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
     // mostly self-lit by the artwork and kept out of tone mapping, so the colours read as the logo from any angle; the
     // dimmed diffuse and the clearcoat only add shading and gloss. No iridescence or sheen: they tinted it blue-violet.
@@ -265,6 +271,7 @@ export function PrismStar({ dark, className }: { dark: boolean; className?: stri
         .replace("#include <begin_vertex>", "#include <begin_vertex>\n          transformed = asterraMorph(transformed);");
     };
     const star = new THREE.Mesh(geo, starMat);
+    star.visible = false;
     const rig = new THREE.Group();
     rig.add(star);
     // everything that travels with the scroll
