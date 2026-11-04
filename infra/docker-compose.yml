@@ -88,8 +88,7 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: coolify
-      # until the V1.0 mainnet release the apex serves the live testnet app (move the apex to web-mainnet then)
-      traefik.http.routers.asterra-testnet.rule: Host(`testnet.asterrapools.tech`) || Host(`asterrapools.tech`)
+      traefik.http.routers.asterra-testnet.rule: Host(`testnet.asterrapools.tech`)
       traefik.http.routers.asterra-testnet.entrypoints: https
       traefik.http.routers.asterra-testnet.tls.certresolver: letsencrypt
       traefik.http.services.asterra-testnet.loadbalancer.server.port: "3000"
@@ -113,6 +112,14 @@ services:
     profiles: [mainnet]
     environment: { PORT: "3000", HOSTNAME: 0.0.0.0 }
     networks: [default, coolify]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      # the apex serves the mainnet app since the V1.0 release; http and www redirects live on web-testnet
+      traefik.http.routers.asterra-mainnet.rule: Host(`asterrapools.tech`)
+      traefik.http.routers.asterra-mainnet.entrypoints: https
+      traefik.http.routers.asterra-mainnet.tls.certresolver: letsencrypt
+      traefik.http.services.asterra-mainnet.loadbalancer.server.port: "3000"
 
 networks:
   coolify:
