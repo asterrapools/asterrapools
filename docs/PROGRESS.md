@@ -41,7 +41,9 @@
 | Developers / SDK page removed | done |
 | Stock tokens out of `mainnet.json` until V2.0 | done |
 | `mainnet-launch-v1.sh` (USDG buy, WETH/USDG seed, smoke swap) and `mainnet-v2.sh` (feeds, stocks, launchpad, TSLA/USDG) | done, fork-rehearsed |
-| Mainnet broadcast | waiting (M1) |
+| Mainnet V1.0: 36 deploy transactions (0.000804 ETH), WETH/USDG seeded (≈ $5.4), apex serves mainnet, indexer on 4663 | done 2026-11-04 |
+| Explorer verification (`pnpm mainnet:verify`, 26/26 packages ready) | waiting (user, screen recording) |
+| V2.0 open | waiting (M2) |
 
 ## Decisions (one line each)
 
