@@ -116,6 +116,38 @@ test("reduced motion: the still star is drawn with the logo's colours, not the p
   expect(lime).toBeGreaterThan(800);
 });
 
+test("on a slow network the star waits for its artwork instead of flashing placeholder colours", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  let release = () => {};
+  const held = new Promise<void>((r) => (release = r));
+  await page.route("**/brand/asterra-mark-512.png", async (route) => (await held, route.continue()));
+  // the held image would hold back the load event too
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("[data-scene] canvas")).toHaveCount(1, { timeout: 15_000 });
+  await page.waitForTimeout(1500);
+  // the middle of the star's face: saturated colour there means the star is drawn
+  const clip = { x: 950, y: 380, width: 190, height: 140 };
+  const colourful = async () => {
+    const png = await page.screenshot({ clip });
+    return page.evaluate(async (b64: string) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const c = document.createElement("canvas");
+      [c.width, c.height] = [img.width, img.height];
+      const g = c.getContext("2d")!;
+      g.drawImage(img, 0, 0);
+      const d = g.getImageData(0, 0, c.width, c.height).data;
+      let n = 0;
+      for (let k = 0; k < d.length; k += 4) if (Math.max(d[k]!, d[k + 1]!, d[k + 2]!) - Math.min(d[k]!, d[k + 1]!, d[k + 2]!) > 110) n++;
+      return n / (d.length / 4);
+    }, png.toString("base64"));
+  };
+  expect(await colourful()).toBeLessThan(0.15);
+  release();
+  await expect.poll(colourful, { timeout: 10_000 }).toBeGreaterThan(0.6);
+});
+
 test("space backdrop: a star field that answers the cursor", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("[data-sky] canvas")).toHaveCount(1, { timeout: 15_000 });
