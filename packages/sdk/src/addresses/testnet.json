@@ -1,0 +1,110 @@
+{
+  "poolManager": "0x8366a39CC670B4001A1121B8F6A443A643e40951",
+  "weth": "0x33e4191705c386532ba27cBF171Db86919200B94",
+  "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
+  "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+  "hub": "0x01327059eA96296Ce211447e172A2141f35289c0",
+  "hook": "0x0767bae17950e47414e44939c4Fb29d9ecd3bAcC",
+  "router": "0xDB8ceD28FFb34f5152681574073f96ce50bb5D2d",
+  "positions": "0xaAD41fe843a12bA3bDB6B528876fAf7A0d78fa1c",
+  "dlmmFactory": "0xcdD521C9471743fd9F34D7Bd1d2C9134efdc1E64",
+  "dlmmLimitOrders": "0x56Df7C5537fD5d4B79396cf6AE2aC4417336f47d",
+  "dammFactory": "0xA3A78463ebFF712399998573975F7900F31B28C7",
+  "launchpad": null,
+  "lendingVault": null,
+  "creditManager": null,
+  "buyback": null,
+  "aster": null,
+  "tokens": {
+    "AMD": {
+      "address": "0x71178BAc73cBeb415514eB542a8995b82669778d",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "AMD",
+      "symbol": "AMD"
+    },
+    "AMZN": {
+      "address": "0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "AMZN",
+      "symbol": "AMZN"
+    },
+    "NFLX": {
+      "address": "0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "NFLX",
+      "symbol": "NFLX"
+    },
+    "PLTR": {
+      "address": "0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "PLTR",
+      "symbol": "PLTR"
+    },
+    "TSLA": {
+      "address": "0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "TSLA",
+      "symbol": "TSLA"
+    },
+    "WETH": {
+      "address": "0x33e4191705c386532ba27cBF171Db86919200B94",
+      "decimals": 18,
+      "kind": "canonical",
+      "name": "Wrapped Ether",
+      "symbol": "WETH"
+    },
+    "aAAPL": {
+      "address": "0x3939b7aa0Ad0Cc88B31755AC0e5b234eD551146F",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "Asterra Test Apple",
+      "symbol": "aAAPL"
+    },
+    "aNVDA": {
+      "address": "0x1912EE4462C07c3d082E35EfEC173D6ab3c1A2B1",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "Asterra Test NVIDIA",
+      "symbol": "aNVDA"
+    },
+    "aTSLA": {
+      "address": "0xB35B3bf9effB66317c11AE0F9a2a86Ed80D127b2",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "Asterra Test Tesla",
+      "symbol": "aTSLA"
+    },
+    "aUSD": {
+      "address": "0xE4e00c59F948Cc0568A945471C60Fb24F5734fC1",
+      "decimals": 6,
+      "kind": "test",
+      "name": "Asterra Test USD",
+      "symbol": "aUSD"
+    }
+  },
+  "oracles": {
+    "AMD": "0x22A2c67751cFe5Bb6ceC171aBd4C6C6043f800d7",
+    "AMZN": "0x82671BFF79D2807A78Eea6B2516caaE2Dc6F2A01",
+    "NFLX": "0x599459da32b69CDb81AB6f316473924819D0E24D",
+    "PLTR": "0xf0231e96b215a6AfBCfd1318f0cFAaae1D16D714",
+    "TSLA": "0x1953d806bdDF7d5E8d689fdD2cb2463b72B06014",
+    "WETH": "0x3cA6D71dce0a7Eb2104Ff88CE081246E769369b3",
+    "aAAPL": "0x77cca74256deF50Dae9dC7935BB1F09a157a087F",
+    "aNVDA": "0x620242951DDb04E489cDAD586Dd4eBed859BC441",
+    "aTSLA": "0x6157bcae7F9F268062b90a58f7244ceC222ca691",
+    "aUSD": "0x20350730f4F12EBdeE0AE7443249c1CEc95E5420"
+  },
+  "startBlock": 147891384,
+  "hidden": {
+    "launchpad": "0x39fCFde08E5811d44e3F17D9d3dfd5dc143f5537",
+    "aster": "0x136999f59948d0BD1870bc44E82d5fE335dC4232",
+    "buyback": "0x5E6375f2C285294FD2c369E61aB9F4F4fd4Bc5A4",
+    "lendingVault": "0xaa935f375d63D73a0e44c0354d84c06D61d147f3",
+    "creditManager": "0x2D47c1cD006cD3283FffE1fe67ba283BE6DfEA40"
+  }
+}

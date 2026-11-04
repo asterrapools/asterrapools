@@ -1,0 +1,500 @@
+@import "./tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-bg font-sans text-[15px] leading-[1.6] text-fg antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  /* film grain over every page: keeps large dark fields from looking flat */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  h1, h2, h3, h4 {
+    @apply font-medium text-fg;
+  }
+  h1, h2 {
+    @apply font-display;
+  }
+  ::selection {
+    background: rgb(var(--primary) / 0.3);
+    color: rgb(var(--text));
+  }
+  :focus-visible {
+    outline: 1px solid rgb(var(--ring));
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgb(var(--ring) / 0.25);
+  }
+  /* lucide icons at 1.5 stroke */
+  .lucide {
+    stroke-width: 1.5;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  /* Near full width on every screen: only the side gutter grows, and very wide monitors stop at 2240px */
+  .container {
+    width: 100%;
+    max-width: 2240px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 768px) {
+    .container { padding-inline: 1.5rem; }
+  }
+  @media (min-width: 1024px) {
+    .container { padding-inline: 2.5rem; }
+  }
+  @media (min-width: 1536px) {
+    .container { padding-inline: 3.5rem; }
+  }
+  .eyebrow {
+    @apply font-mono text-eyebrow uppercase text-muted;
+  }
+  .num {
+    @apply font-mono tabular-nums;
+  }
+  .hairline-grid {
+    @apply grid gap-px overflow-hidden rounded-xl border bg-border;
+  }
+  .hairline-grid > * {
+    @apply bg-surface;
+  }
+  /* L-shaped corner ticks outside a featured panel */
+  .brackets {
+    position: relative;
+  }
+  .brackets::before,
+  .brackets::after,
+  .brackets > .brackets-b::before,
+  .brackets > .brackets-b::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+    border-color: rgb(var(--border-strong));
+    border-style: solid;
+  }
+  .brackets::before {
+    top: -5px;
+    left: -5px;
+    border-width: 1px 0 0 1px;
+  }
+  .brackets::after {
+    top: -5px;
+    right: -5px;
+    border-width: 1px 1px 0 0;
+  }
+  .brackets > .brackets-b::before {
+    bottom: -5px;
+    left: -5px;
+    border-width: 0 0 1px 1px;
+  }
+  .brackets > .brackets-b::after {
+    bottom: -5px;
+    right: -5px;
+    border-width: 0 1px 1px 0;
+  }
+  .section-rule {
+    @apply h-px w-full bg-prism opacity-60;
+  }
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgb(var(--surface-2)) 0%,
+      rgb(var(--border)) 50%,
+      rgb(var(--surface-2)) 100%
+    );
+    background-size: 200% 100%;
+    @apply animate-shimmer rounded-sm;
+  }
+  .transition-ui {
+    transition-property: color, background-color, border-color, box-shadow, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-out);
+  }
+
+  /* Text and borders painted with the logo gradient */
+  .text-prism {
+    background: var(--prism);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .glass {
+    background: rgb(var(--surface) / 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+  /* 1px gradient ring on a rounded element, drawn with a mask so the fill stays untouched */
+  .prism-ring {
+    position: relative;
+  }
+  .prism-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: var(--prism);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  /* landing sky (components/landing/landing.tsx): prism nebulae drifting behind the star field */
+  .nebula {
+    background:
+      radial-gradient(40vmax 30vmax at 80% 16%, rgb(var(--cyan) / 0.11), transparent 70%),
+      radial-gradient(44vmax 32vmax at 10% 80%, rgb(var(--violet) / 0.13), transparent 70%),
+      radial-gradient(34vmax 26vmax at 58% 60%, rgb(var(--cobalt) / 0.12), transparent 70%),
+      radial-gradient(26vmax 18vmax at 22% 14%, rgb(var(--lime) / 0.05), transparent 70%);
+    animation: nebula-drift 50s ease-in-out infinite alternate;
+  }
+  :root:not(.dark) .nebula {
+    opacity: 0.55;
+  }
+  @keyframes nebula-drift {
+    from { transform: translate3d(-2.5%, -1.5%, 0) scale(1); }
+    to { transform: translate3d(2.5%, 2%, 0) scale(1.06); }
+  }
+  .grid-paper {
+    background-image:
+      linear-gradient(rgb(var(--border) / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /*
+   * Buttons and header controls. Hover (and keyboard focus): a prism ring fades in and the control lifts 1px.
+   * Press: it settles and squeezes slightly, the ring flares, then springs back on release.
+   */
+  .fx-prism {
+    position: relative;
+    isolation: isolate;
+    transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+    transition-duration: 180ms;
+    transition-timing-function: var(--ease-out);
+  }
+  .fx-prism::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    border-radius: inherit;
+    background: var(--prism);
+    background-size: 200% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms var(--ease-out), inset 220ms var(--ease-spring);
+  }
+  .fx-prism:focus-visible::after {
+    opacity: 1;
+  }
+  @media (hover: hover) {
+    .fx-prism:hover {
+      transform: translateY(-1px);
+    }
+    .fx-prism:hover::after {
+      opacity: 1;
+      animation: prism-pan 2.4s linear infinite;
+    }
+  }
+  .fx-prism:active {
+    transform: translateY(0) scale(0.97);
+    transition-duration: 80ms;
+  }
+  .fx-prism:active::after {
+    inset: -3px;
+    opacity: 1;
+    box-shadow: 0 0 18px rgb(var(--cyan) / 0.45);
+  }
+  .fx-prism:disabled {
+    transform: none;
+  }
+  .fx-prism:disabled::after {
+    display: none;
+  }
+  /* range inputs: thin track, prism fill is implied by the thumb ring */
+  .prism-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .prism-range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--prism);
+    opacity: 0.85;
+  }
+  .prism-range::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--prism);
+  }
+  .prism-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    margin-top: -6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    background: rgb(var(--surface));
+    border: 2px solid rgb(var(--text));
+    transition: transform 150ms var(--ease-spring);
+  }
+  .prism-range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: rgb(var(--surface));
+    border: 2px solid rgb(var(--text));
+  }
+  .prism-range:active::-webkit-slider-thumb {
+    transform: scale(1.25);
+  }
+  @keyframes prism-pan {
+    from { background-position: 0% 50%; }
+    to { background-position: 200% 50%; }
+  }
+}
+
+/*
+ * First-visit intro (components/layout/intro.tsx). Three seconds on screen, then a circular wipe reveals the page.
+ * Pure CSS timing, so it leaves on time even before hydration. JS sets --tx/--ty (pointer, -0.5..0.5), --pa (pointer
+ * angle) and --pf (pointer present) for the tilt and the bin swell. Every running animation is transform or
+ * opacity, so the compositor keeps it smooth while the main thread is busy booting the app.
+ */
+html[data-intro="seen"] .intro {
+  display: none;
+}
+.intro {
+  --mark: clamp(92px, 17vmin, 150px);
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  overflow: hidden;
+  background:
+    radial-gradient(60vmax 60vmax at 50% 42%, rgb(var(--cobalt) / 0.16), transparent 60%),
+    radial-gradient(40vmax 40vmax at 62% 58%, rgb(var(--violet) / 0.12), transparent 60%),
+    rgb(var(--bg));
+  color: rgb(var(--text));
+  animation: intro-out 0.75s cubic-bezier(0.7, 0, 0.2, 1) 3s forwards;
+  user-select: none;
+}
+.intro::before {
+  /* faint blueprint grid that drifts upward, like a chart being drawn */
+  content: "";
+  position: absolute;
+  inset: -64px 0 0;
+  background-image:
+    linear-gradient(rgb(var(--border) / 0.45) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--border) / 0.45) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse at 50% 45%, black, transparent 65%);
+  animation: intro-grid 3s linear both;
+}
+.intro-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(var(--mark) * 2.7);
+  aspect-ratio: 1;
+}
+.intro-pulse .intro-stage {
+  animation: intro-press 0.5s var(--ease-spring);
+}
+.intro-mark {
+  width: var(--mark);
+  height: var(--mark);
+  filter: drop-shadow(0 0 28px rgb(var(--cyan) / 0.45)) drop-shadow(0 0 60px rgb(var(--violet) / 0.3));
+  transform: perspective(700px) rotateY(calc(var(--tx, 0) * 40deg)) rotateX(calc(var(--ty, 0) * -40deg));
+  transition: transform 0.25s var(--ease-out);
+  animation: intro-mark 1.1s var(--ease-spring) both, intro-spin 3s cubic-bezier(0.5, 0, 0.2, 1) both;
+}
+.intro-ring {
+  position: absolute;
+  inset: 0;
+}
+.intro-ring > span {
+  --a: calc(var(--i) / var(--n) * 1turn);
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 3px;
+  height: calc(var(--mark) * 0.42);
+  margin-left: -1.5px;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--a)) translateY(calc(var(--mark) * -0.72));
+  /* a brightness wave travelling around the ring */
+  animation: intro-wave 1.4s ease-in-out calc(var(--i) * 25ms) infinite;
+}
+.intro-ring > span > i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(to top, rgb(var(--cyan)), rgb(var(--violet)));
+  opacity: 0.85;
+  transform-origin: 50% 100%;
+  /* --h: distribution height; cos(): swell toward the pointer */
+  transform: scaleY(calc(var(--h) * (1 + var(--pf, 0) * 0.9 * max(0, cos(var(--a) - var(--pa, 0deg))))));
+  transition: transform 0.18s var(--ease-out);
+  animation: intro-bin 0.7s var(--ease-spring) calc(0.15s + var(--i) * 12ms) both;
+}
+.intro-ring > span:nth-child(4n + 1) > i {
+  background: linear-gradient(to top, rgb(var(--lime)), rgb(var(--cyan)));
+}
+.intro-word {
+  display: flex;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 4.4vw, 2.6rem);
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+  padding-bottom: 0.08em;
+}
+.intro-word > span {
+  display: inline-block;
+  background: var(--prism);
+  background-size: 1200% 100%;
+  background-position: calc(var(--i) / 11 * 100%) 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: intro-letter 0.75s var(--ease-out) calc(0.35s + var(--i) * 45ms) both;
+}
+.intro-tag {
+  font-size: 0.95rem;
+  color: rgb(var(--text-2));
+  animation: intro-fade 0.6s var(--ease-out) 1.05s both;
+}
+.intro-boot {
+  position: relative;
+  height: 1.2rem;
+  width: 18rem;
+  font-family: var(--font-geist-mono, ui-monospace), monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgb(var(--muted));
+  text-align: center;
+}
+.intro-boot > span {
+  position: absolute;
+  inset: 0;
+  animation: intro-boot 0.62s var(--ease-out) calc(0.3s + var(--i) * 0.62s) both;
+}
+.intro-boot > span::before {
+  content: "› ";
+  color: rgb(var(--primary-text));
+}
+.intro-boot > span:last-child {
+  color: rgb(var(--text));
+  animation-name: intro-boot-last;
+}
+.intro-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--prism);
+  transform-origin: 0 50%;
+  animation: intro-bar 2.85s cubic-bezier(0.6, 0, 0.3, 1) 0.1s both;
+}
+@keyframes intro-out {
+  from { clip-path: circle(150% at 50% 45%); }
+  to { clip-path: circle(0% at 50% 45%); visibility: hidden; }
+}
+@keyframes intro-grid {
+  from { transform: translateY(0); opacity: 0; }
+  20% { opacity: 1; }
+  to { transform: translateY(-64px); }
+}
+@keyframes intro-mark {
+  from { opacity: 0; scale: 0.4; }
+  to { opacity: 1; scale: 1; }
+}
+@keyframes intro-spin {
+  from { rotate: -90deg; }
+  45% { rotate: 0deg; }
+  to { rotate: 0deg; }
+}
+@keyframes intro-press {
+  40% { scale: 0.92; }
+}
+@keyframes intro-bin {
+  from { scale: 1 0; opacity: 0; }
+  to { scale: 1 1; opacity: 0.85; }
+}
+@keyframes intro-wave {
+  50% { opacity: 0.45; }
+}
+@keyframes intro-letter {
+  from { transform: translateY(110%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes intro-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes intro-boot {
+  from { opacity: 0; transform: translateY(8px); }
+  18%, 80% { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes intro-boot-last {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes intro-bar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

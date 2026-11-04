@@ -1,0 +1,16 @@
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/*.tsbuildinfo
+packages/contracts
+supabase
+infra
+docs
+.git
+.github
+**/.env
+**/.env.*
+!**/.env.example
+apps/web/test-results
+apps/web/playwright-report

@@ -1,0 +1,129 @@
+# AsterraPools production stack on one VPS. Run from infra/ with an .env next to this file (see .env.example).
+#   db         Postgres 17 (Supabase image: pg_cron, pg_net, vault, API roles)
+#   rest       PostgREST, used by the edge functions through the internal gateway
+#   functions  Supabase edge-runtime serving supabase/functions (api, indexer)
+#   gateway    Caddy as the internal Supabase-style gateway (/rest/v1, /functions/v1); no host ports
+#   web-*      Next.js builds pulled from GHCR (CI builds them, the VPS never compiles)
+# Public HTTPS is the host's existing Traefik (Coolify proxy, network `coolify`, resolver `letsencrypt`); the labels
+# below register the routes. Nothing here binds a host port, so other projects on the VPS are untouched.
+name: asterrapools
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+services:
+  db:
+    image: public.ecr.aws/supabase/postgres:17.11.0.004
+    restart: unless-stopped
+    logging: *logging
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "log_min_messages=warning"]
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_HOST: /var/run/postgresql
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      JWT_EXP: 3600
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rest:
+    image: public.ecr.aws/supabase/postgrest:v16.4
+    restart: unless-stopped
+    logging: *logging
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+
+  functions:
+    image: public.ecr.aws/supabase/edge-runtime:v1.77.4
+    restart: unless-stopped
+    logging: *logging
+    depends_on: [rest]
+    networks: [default, coolify]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      # public read-only API on both hosts; /indexer stays internal
+      traefik.http.routers.asterra-api.rule: (Host(`testnet.asterrapools.tech`) || Host(`asterrapools.tech`)) && PathPrefix(`/api`)
+      traefik.http.routers.asterra-api.entrypoints: https
+      traefik.http.routers.asterra-api.tls.certresolver: letsencrypt
+      traefik.http.routers.asterra-api.priority: "100"
+      traefik.http.services.asterra-api.loadbalancer.server.port: "9000"
+    command: ["start", "--main-service", "/home/deno/main"]
+    environment:
+      SUPABASE_URL: http://asterra-gateway:8000
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY:?set SERVICE_ROLE_KEY}
+      INDEXER_TOKEN: ${INDEXER_TOKEN:?set INDEXER_TOKEN}
+      FEATURES: ${FEATURES:-}
+      EXTERNAL_POOLS: ${EXTERNAL_POOLS:-on}
+    volumes:
+      - ../supabase/functions:/home/deno/functions:ro
+      - ./main:/home/deno/main:ro
+
+  asterra-gateway:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    logging: *logging
+    depends_on: [functions]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+
+  web-testnet:
+    image: ghcr.io/asterrapools/asterrapools-web:testnet
+    restart: unless-stopped
+    logging: *logging
+    environment: { PORT: "3000", HOSTNAME: 0.0.0.0 }
+    networks: [default, coolify]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      traefik.http.routers.asterra-testnet.rule: Host(`testnet.asterrapools.tech`)
+      traefik.http.routers.asterra-testnet.entrypoints: https
+      traefik.http.routers.asterra-testnet.tls.certresolver: letsencrypt
+      traefik.http.services.asterra-testnet.loadbalancer.server.port: "3000"
+      traefik.http.routers.asterra-http.rule: Host(`testnet.asterrapools.tech`) || Host(`asterrapools.tech`) || Host(`www.asterrapools.tech`)
+      traefik.http.routers.asterra-http.entrypoints: http
+      traefik.http.routers.asterra-http.middlewares: asterra-https
+      traefik.http.middlewares.asterra-https.redirectscheme.scheme: https
+      traefik.http.middlewares.asterra-https.redirectscheme.permanent: "true"
+      traefik.http.routers.asterra-www.rule: Host(`www.asterrapools.tech`)
+      traefik.http.routers.asterra-www.entrypoints: https
+      traefik.http.routers.asterra-www.tls.certresolver: letsencrypt
+      traefik.http.routers.asterra-www.middlewares: asterra-www
+      traefik.http.middlewares.asterra-www.redirectregex.regex: ^https://www\.asterrapools\.tech/(.*)
+      traefik.http.middlewares.asterra-www.redirectregex.replacement: https://asterrapools.tech/$${1}
+      traefik.http.middlewares.asterra-www.redirectregex.permanent: "true"
+
+  web-mainnet:
+    image: ghcr.io/asterrapools/asterrapools-web:mainnet
+    restart: unless-stopped
+    logging: *logging
+    profiles: [mainnet]
+    environment: { PORT: "3000", HOSTNAME: 0.0.0.0 }
+    networks: [default, coolify]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      # the apex serves the mainnet app since the V1.0 release; http and www redirects live on web-testnet
+      traefik.http.routers.asterra-mainnet.rule: Host(`asterrapools.tech`)
+      traefik.http.routers.asterra-mainnet.entrypoints: https
+      traefik.http.routers.asterra-mainnet.tls.certresolver: letsencrypt
+      traefik.http.services.asterra-mainnet.loadbalancer.server.port: "3000"
+
+networks:
+  coolify:
+    external: true
+
+volumes:
+  db-data:
