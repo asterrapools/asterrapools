@@ -6,7 +6,7 @@ and shows them in the web app. Modules whose release has not come yet stay locke
 | Phase | Release | Network | Contents | Status |
 |---|---|---|---|---|
 | 1 | Testnet | Robinhood Chain Testnet | Every contract deployed; V1.0 modules open, V2.0 / V3.0 modules deployed and locked on-chain | done 2026-11-04 |
-| 2 | **ASTERRAPOOLS V1.0** | Robinhood Chain | Smart router, v4 hook (dynamic fee), DLMM + limit orders, DAMM, LP positions, analytics, event feed | 2026-11-04 |
+| 2 | **ASTERRAPOOLS V1.0** | Robinhood Chain | Smart router, v4 hook (dynamic fee), DLMM + limit orders, DAMM, LP positions, analytics, event feed | live 2026-11-04 |
 | 3 | **ASTERRAPOOLS V2.0** | Robinhood Chain | Stock pools with the oracle guard, launchpad | about 1 hour after V1.0 |
 | 4 | **ASTERRAPOOLS V3.0** | Robinhood Chain | Credit (LP positions as collateral) | planned |
 

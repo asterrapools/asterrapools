@@ -83,7 +83,7 @@ services:
     image: ghcr.io/asterrapools/asterrapools-web:testnet
     restart: unless-stopped
     logging: *logging
-    environment: { PORT: "3000", HOSTNAME: 0.0.0.0 }
+    environment: { PORT: "3000", HOSTNAME: 0.0.0.0, ASTER_TOKEN_ADDRESS: "${ASTER_TOKEN_ADDRESS:-}" }
     networks: [default, coolify]
     labels:
       traefik.enable: "true"
@@ -110,7 +110,7 @@ services:
     restart: unless-stopped
     logging: *logging
     profiles: [mainnet]
-    environment: { PORT: "3000", HOSTNAME: 0.0.0.0 }
+    environment: { PORT: "3000", HOSTNAME: 0.0.0.0, ASTER_TOKEN_ADDRESS: "${ASTER_TOKEN_ADDRESS:-}" }
     networks: [default, coolify]
     labels:
       traefik.enable: "true"

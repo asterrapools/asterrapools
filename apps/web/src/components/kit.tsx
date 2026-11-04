@@ -455,7 +455,7 @@ export function TxNotice({ tx }: { tx: ReturnType<typeof useTx> }) {
 
 /**
  * Renders an Approve button while the allowance for `spender` is below `amount`, then `children`.
- * Native ETH never needs approval.
+ * Native ETH never needs approval. While the allowance loads, a disabled button stands in for both.
  */
 export function ApproveGate({
   token,
@@ -468,8 +468,16 @@ export function ApproveGate({
   amount: bigint;
   children: React.ReactNode;
 }) {
-  const { allowance, refetch } = useAllowance(token?.address, spender);
+  const { allowance, refetch, isLoading } = useAllowance(token?.address, spender);
   const tx = useTx();
+  // until the allowance is read the action would revert, so a disabled button stands in for it
+  if (token && spender && amount !== 0n && isLoading) {
+    return (
+      <Button className="w-full" size="lg" disabled>
+        Checking allowance…
+      </Button>
+    );
+  }
   if (!token || !spender || amount === 0n || allowance === undefined || allowance >= amount) return <>{children}</>;
   return (
     <div className="space-y-2">

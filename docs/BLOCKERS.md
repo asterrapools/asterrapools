@@ -9,7 +9,7 @@ Commands that need the keystore password or a login are run by you in your own t
 | B3 | Testnet broadcast (`deployer` keystore password) | done 2026-11-04: 119 transactions, 34/34 contracts verified |
 | B4 | GHCR image visibility: the VPS gets `unauthorized` pulling the web image | done: testnet site live |
 | B5 | Testnet activity swaps after B2–B4 (keystore password) | done: 7 pools with swaps |
-| M1 | Mainnet V1.0 deploy + seed (keystore password) | open, ready: rehearsed on a mainnet fork 2026-11-04 |
+| M1 | Mainnet V1.0 deploy + seed (keystore password) | done 2026-11-04: 36 + 5 transactions, asterrapools.tech serves mainnet |
 | M2 | Mainnet V2.0 open (keystore password), about 1 hour after M1 | open, ready: rehearsed on a mainnet fork |
 
 ## M1 · Mainnet V1.0
