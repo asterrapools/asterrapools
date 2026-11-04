@@ -22,6 +22,8 @@ const PrismStar = dynamic(() => import("./prism-star").then((m) => m.PrismStar),
   loading: () => <div className="size-full animate-pulse rounded-full bg-prism opacity-10 blur-3xl" />,
 });
 
+const SpaceBackdrop = dynamic(() => import("./space-backdrop").then((m) => m.SpaceBackdrop), { ssr: false });
+
 const X_URL = "https://x.com/AsterraPools";
 
 /** Fades a block in once it scrolls into view. CSS only after the first intersection, so scrolling stays smooth. */
@@ -89,7 +91,6 @@ const PILLARS = [
 function Hero() {
   return (
     <section className="relative overflow-hidden" data-star="0.45 0 1 1 0 0 0 0" data-star-m="0 -0.62 0.55 1">
-      <div className="pointer-events-none absolute inset-0 grid-paper opacity-40 [mask-image:radial-gradient(ellipse_at_70%_40%,black,transparent_70%)]" />
       <div className="pointer-events-none absolute -right-40 top-10 size-[640px] rounded-full bg-cobalt/20 blur-[120px] dark:bg-cobalt/30" />
       <div className="container relative grid min-h-[calc(100svh-3.5rem)] items-center gap-6 py-10 lg:grid-cols-[1.05fr_1fr] lg:py-0">
         <div className="relative z-10 space-y-7">
@@ -543,11 +544,17 @@ function Outro() {
 export function Landing() {
   const { resolvedTheme } = useTheme();
   const mounted = useMounted();
+  const dark = resolvedTheme !== "light";
   return (
     <>
+      {/* deep space behind everything: drifting nebulae and a star field that follows the pointer */}
+      <div className="pointer-events-none fixed inset-0 -z-20 overflow-hidden" data-sky aria-hidden>
+        <div className="nebula absolute -inset-[8%]" />
+        {mounted && <SpaceBackdrop dark={dark} className="absolute inset-0" />}
+      </div>
       {/* one scene behind the whole page; the star travels between the sections' data-star waypoints */}
       <div className="pointer-events-none fixed inset-0 -z-10" data-scene aria-hidden>
-        {mounted && <PrismStar dark={resolvedTheme !== "light"} className="absolute inset-0" />}
+        {mounted && <PrismStar dark={dark} className="absolute inset-0" />}
       </div>
       <Hero />
       <ChainSection />

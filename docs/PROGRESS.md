@@ -18,6 +18,11 @@
 | Software-WebGL browsers (GPU blocklisted) get the static mark instead of the scene: dropped/partial frames while scrolling 78% → 10% | measured 2026-11-04 |
 | Star morphs per section (gem, ribbon, coin; bin ring Curve → Bid-Ask → Spot) and reacts to scroll speed | done |
 | Near full-width layout (container up to 2240px, gutter only) | done |
+| 3D star wears the logo artwork (outline fitted to the mark, 2 px rms), true colours in both themes and reduced motion | done, e2e guarded |
+| Landing space backdrop: nebulae + star field with cursor parallax, parting and flare | done, e2e guarded |
+| Header nav sits beside the logo | done, e2e guarded |
+| DLMM pools get a price from their active bin on every indexer run (before: only after a swap, so no price chart) | done |
+| Activity swaps sized from pool reserves, leaning back to the oracle price; fork-simulated 35/35 swaps | done |
 | No `—`, `0` or empty values; charts never empty; operator wallet never shown | done, e2e guarded |
 | VPS stack (Postgres, PostgREST, edge-runtime, Caddy) rehearsed locally: migrations, cron → indexer, API | done |
 | Web Docker image (standalone, 313 MB) | done |

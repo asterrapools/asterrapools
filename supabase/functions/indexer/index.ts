@@ -820,7 +820,7 @@ async function indexChain(db: SupabaseClient, chainId: number, deadline: number,
   }
 
   // ---------------------------------------------------------------- chain reads + prices
-  const chainMeta = await refreshChainState(db, client, chainId, A, pools, tokens, touched);
+  const chainMeta = await refreshChainState(db, client, chainId, A, pools, tokens, touched, binSteps);
 
   // The API role cuts statements at 8s. A replay batch can touch many external pools over a long window (hourly
   // stats are rebuilt from their swaps), so refresh them in groups; with nothing touched one call refreshes everything.
@@ -925,12 +925,14 @@ async function refreshChainState(
   pools: Map<string, PoolRow>,
   tokens: Map<string, TokenRow>,
   touched: Set<string>,
+  binSteps: Map<string, number>,
 ): Promise<Record<string, unknown>> {
   const meta: Record<string, unknown> = {};
   const dec = (a: string) => tokens.get(a)?.decimals ?? 18;
   const updates: Row[] = [];
 
-  // DAMM: reserves + price + fee; DLMM: fee + active bin
+  // DAMM: reserves + price + fee; DLMM: fee + active bin + its price (a pool nobody swapped yet still needs a price
+  // for the hourly snapshot, or it gets no price chart and no oracle deviation)
   const live = [...pools.values()].filter((p) => p.venue === "DAMM" || p.venue === "DLMM");
   for (const part of chunked(live, 25)) {
     await Promise.all(part.map(async (p) => {
@@ -952,7 +954,11 @@ async function refreshChainState(
             client.readContract({ address: addr, abi: dlmmPoolAbi, functionName: "activeId" }),
             client.readContract({ address: addr, abi: dlmmPoolAbi, functionName: "currentFee" }),
           ]);
-          updates.push({ chain_id: chainId, pool_id: p.pool_id, venue: p.venue, token0: p.token0, token1: p.token1, active_index: Number(active), fee_pips: Number(fee) });
+          const step = binSteps.get(p.pool_id) ?? 0;
+          updates.push({
+            chain_id: chainId, pool_id: p.pool_id, venue: p.venue, token0: p.token0, token1: p.token1, active_index: Number(active), fee_pips: Number(fee),
+            ...(step ? { price: priceFromBin(Number(active), step, dec(p.token0), dec(p.token1)) } : {}),
+          });
         }
       } catch {
         // pool unreadable this run; keep the previous state

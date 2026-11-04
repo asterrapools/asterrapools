@@ -47,9 +47,11 @@ Change visibility → Public. The repo is already public, and the image holds on
 
 ## B5 · Testnet activity
 
-Once the site is live, a few router swaps give every pool chart and the event feed real history:
+Router swaps give every pool chart, sparkline and the event feed real history. One swap per pool every 15 minutes for
+24 hours (Ctrl+C stops it any time; the keystore password is asked once). Sizes follow each pool's reserves and lean
+back toward the oracle price, so charts move like a market and the circuit breaker never trips.
 
 ```bash
 # Run in: ROOT (ASTERRAPOOLS)
-bash scripts/testnet-activity.sh 3
+bash scripts/testnet-activity.sh 96 900
 ```

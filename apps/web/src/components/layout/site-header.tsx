@@ -77,7 +77,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border/60 bg-bg/90">
       <div className="container flex h-14 items-center gap-6">
         <Logo />
-        <nav className="mx-auto hidden items-center gap-0.5 rounded-full border bg-surface/50 p-1 lg:flex" aria-label="Main">
+        <nav className="hidden items-center gap-0.5 rounded-full border bg-surface/50 p-1 lg:flex" aria-label="Main">
           {PRIMARY_NAV.map((item) => (
             <Link
               key={item.href}
@@ -107,7 +107,7 @@ export function SiteHeader() {
           </DropdownMenu>
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 lg:ml-0">
+        <div className="ml-auto flex items-center gap-2">
           <NetworkToggle className="hidden sm:flex" />
           <Button asChild variant="ghost" size="icon-sm" className="fx-prism hidden md:inline-flex">
             <a href={X_URL} target="_blank" rel="noopener noreferrer" aria-label="Asterra on X">
