@@ -29,10 +29,23 @@
 | Web Docker image (standalone, 313 MB) | done |
 | Build-only CI with GHCR image | written |
 | Fork rehearsal of the 4-step testnet release (Deploy, SetupMarkets, DeployGated, DeepenLiquidity) | passed |
-| Testnet broadcast | waiting (B3) |
-| VPS deploy + HTTPS | waiting (B1, B2) |
+| Testnet broadcast: 119 transactions, 34/34 contracts verified on the explorer | done |
+| VPS deploy + HTTPS, testnet activity swaps | done |
+
+## Phase 2 · Mainnet V1.0 / V2.0
+
+| Task | Status |
+|---|---|
+| No ASTER token or buyback in the mainnet deploy (token launches outside the protocol) | done |
+| Landing hero: ASTERRAPOOLS CA, "Coming soon" until the address is set | done |
+| Developers / SDK page removed | done |
+| Stock tokens out of `mainnet.json` until V2.0 | done |
+| `mainnet-launch-v1.sh` (USDG buy, WETH/USDG seed, smoke swap) and `mainnet-v2.sh` (feeds, stocks, launchpad, TSLA/USDG) | done, fork-rehearsed |
+| Mainnet broadcast | waiting (M1) |
 
 ## Decisions (one line each)
+
+- 2026-11-04: ASTERRAPOOLS token launches outside the protocol (user handles buyback & burn); SDK hidden; V3.0 = credit only; V1.0 and V2.0 the same day, about 1 hour apart; seeds from the deployer balance only.
 
 - 2026-11-02: Backend on the VPS as a lean Supabase-compatible stack (user's choice), one database for every chain.
 - 2026-11-02: Versions: V1.0 core + DLMM + DAMM + positions, V2.0 stock pools + launchpad, V3.0 ASTER + buyback + credit (user's choice).

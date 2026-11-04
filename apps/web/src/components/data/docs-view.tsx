@@ -193,17 +193,13 @@ const BLOCKS: Block[] = [
     ),
   },
   {
-    id: "developers",
-    title: "Developers",
+    id: "contracts",
+    title: "Contracts",
     body: (
-      <>
-        <p>
-          <Mono>@asterrapools/sdk</Mono> ships addresses, ABIs and route helpers for each network. The REST API is public and read only, and every response is
-          shaped as <Mono>{"{ data }"}</Mono>. See <A href="/developers">Developers</A> for endpoints and examples, and <A href="/contracts">Contracts</A> for
-          every deployed address.
-        </p>
-        <p>All Asterra contracts are UUPS proxies. The address you read in the SDK stays the same when logic is upgraded.</p>
-      </>
+      <p>
+        Every deployed address is listed on <A href="/contracts">Contracts</A> and verified on the explorer. All Asterra contracts are UUPS proxies, so an
+        address stays the same when logic is upgraded.
+      </p>
     ),
   },
   {
@@ -212,7 +208,7 @@ const BLOCKS: Block[] = [
     body: (
       <Dl
         rows={[
-          ["Is Asterra on mainnet?", "Not yet. Asterra runs on Robinhood Chain Testnet, where tokens carry no value. Mainnet launch will be announced here."],
+          ["Is Asterra on mainnet?", "Yes. Asterra runs on Robinhood Chain. A public testnet with free test tokens runs at testnet.asterrapools.tech."],
           ["Why did my swap revert?", "The output fell below your slippage tolerance, or a stock pool circuit breaker blocked a swap that would push it too far from the oracle."],
           ["Why is a pool chart flat?", "Charts move when trades move the price. A pool with no trades in the last 24 hours shows a steady line."],
           ["Where is my position?", "Connect the wallet that opened it. Positions load by owner address across every venue."],
@@ -228,7 +224,7 @@ export function DocsView() {
       <PageHeader
         eyebrow="Docs"
         title="Asterra Docs"
-        description="How trading, pools, fees and stock pools work on AsterraPools, and where to find the SDK and API."
+        description="How trading, pools, fees and stock pools work on AsterraPools, and where to find every contract."
       />
       <div className="mt-10 grid gap-10 lg:grid-cols-[14rem_1fr]">
         <nav aria-label="On this page" className="lg:sticky lg:top-[calc(var(--header-h)+1.5rem)] lg:self-start">

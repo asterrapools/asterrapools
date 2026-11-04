@@ -6,9 +6,36 @@ Commands that need the keystore password or a login are run by you in your own t
 |---|---|---|
 | B1 | VPS SSH access for this machine's key | done 2026-11-02 |
 | B2 | DNS: A `@` and `testnet` → `160.238.36.55`, `www` CNAME → apex | done 2026-11-04; Let's Encrypt certificates issued for apex and testnet |
-| B3 | Testnet broadcast (`deployer` keystore password) | open, ready: step-1 simulation on live testnet passed 2026-11-04 |
-| B4 | GHCR image visibility: the VPS gets `unauthorized` pulling the web image | open |
-| B5 | Testnet activity swaps after B2–B4 (keystore password) | open |
+| B3 | Testnet broadcast (`deployer` keystore password) | done 2026-11-04: 119 transactions, 34/34 contracts verified |
+| B4 | GHCR image visibility: the VPS gets `unauthorized` pulling the web image | done: testnet site live |
+| B5 | Testnet activity swaps after B2–B4 (keystore password) | done: 7 pools with swaps |
+| M1 | Mainnet V1.0 deploy + seed (keystore password) | open, ready: rehearsed on a mainnet fork 2026-11-04 |
+| M2 | Mainnet V2.0 open (keystore password), about 1 hour after M1 | open, ready: rehearsed on a mainnet fork |
+
+## M1 · Mainnet V1.0
+
+Deployer: 0.00493 ETH. Deploy ≈ $2, then the seed uses the rest except a gas reserve. Three commands, in order:
+
+```bash
+# Run in: ROOT (ASTERRAPOOLS)
+bash scripts/mainnet-deploy.sh               # dry run, nothing is sent
+bash scripts/mainnet-deploy.sh --broadcast   # password asked twice
+bash scripts/mainnet-launch-v1.sh            # buys USDG, opens + seeds WETH/USDG, smoke swap; password asked once
+```
+
+When it finishes, tell Claude: addresses and receipts get committed, the apex domain moves to the mainnet app, CI builds
+both images, the VPS is redeployed and the contracts are verified.
+
+## M2 · Mainnet V2.0
+
+Stock feeds must be fresh (the script checks). About 0.0007 ETH.
+
+```bash
+# Run in: ROOT (ASTERRAPOOLS)
+bash scripts/mainnet-v2.sh
+```
+
+Then tell Claude: the stock tokens and the launchpad appear in the web app after one rebuild.
 
 ## B1 · VPS SSH
 

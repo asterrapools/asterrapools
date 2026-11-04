@@ -14,6 +14,7 @@ import { useMounted } from "@/hooks/use-mounted";
 import { contractGroups } from "@/lib/contracts";
 import { formatPct, formatUsd, shortAddress } from "@/lib/format";
 import { CHAIN, CHAIN_ID, DEPLOYMENT, explorerAddress, NETWORK, NETWORK_LABEL } from "@/lib/network";
+import { ASTER_TOKEN } from "@/lib/token";
 import { cn } from "@/lib/utils";
 import { BinLab, PositionCard, RangeLab, RouteRace } from "./labs";
 
@@ -88,6 +89,26 @@ const PILLARS = [
   { href: "#flow", icon: Route, n: "03", label: "Positions + smart routing" },
 ];
 
+/** Contract address of the ASTERRAPOOLS token, "Coming soon" until ASTER_TOKEN.address is set. */
+function TokenCA() {
+  const { name, address, explorer } = ASTER_TOKEN;
+  return (
+    <p data-testid="token-ca" className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border bg-surface/90 px-3 py-2 font-mono text-xs">
+      <span className="uppercase tracking-button text-muted">{name} CA</span>
+      {address ? (
+        <>
+          <a href={`${explorer}/token/${address}`} target="_blank" rel="noreferrer" className="break-all text-fg transition-ui hover:text-primary-text">
+            {address}
+          </a>
+          <CopyAddress value={address} />
+        </>
+      ) : (
+        <span className="text-prism font-semibold uppercase tracking-button">Coming soon</span>
+      )}
+    </p>
+  );
+}
+
 function Hero() {
   return (
     <section className="relative overflow-hidden" data-star="0.45 0 1 1 0 0 0 0" data-star-m="0 -0.62 0.55 1">
@@ -120,6 +141,9 @@ function Hero() {
             <Button asChild size="lg" variant="secondary" className="fx-prism rounded-full px-7">
               <Link href="/pools">Explore pools</Link>
             </Button>
+          </Reveal>
+          <Reveal delay={280}>
+            <TokenCA />
           </Reveal>
           <Reveal delay={320}>
             <ol className="grid gap-2 sm:grid-cols-3">

@@ -23,7 +23,6 @@ const ALL_MORE: (NavItem & { hidden?: boolean })[] = [
   { href: "/faucet", label: "Faucet", description: "Test tokens for testnet" },
   { href: "/buyback", label: "Buyback & burn", description: "Protocol revenue into ASTER", hidden: !FEATURES.buyback },
   { href: "/contracts", label: "Contracts", description: "Every deployed address" },
-  { href: "/developers", label: "Developers", description: "SDK and REST API" },
 ];
 
 const visible = (items: (NavItem & { hidden?: boolean })[]): NavItem[] => items.filter((i) => !i.hidden).map(({ hidden: _hidden, ...i }) => i);
@@ -37,6 +36,5 @@ export const navFor = (items: NavItem[], network: NetworkName, venues: { dlmm: b
 
 export const RESOURCE_NAV: NavItem[] = [
   { href: "/docs", label: "Docs", description: "How Asterra works" },
-  { href: "/developers", label: "Developers", description: "SDK and REST API" },
   { href: "/contracts", label: "Contracts", description: "Every deployed address" },
 ];
