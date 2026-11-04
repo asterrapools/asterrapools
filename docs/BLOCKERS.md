@@ -47,11 +47,12 @@ Change visibility → Public. The repo is already public, and the image holds on
 
 ## B5 · Testnet activity
 
-Router swaps give every pool chart, sparkline and the event feed real history. One swap per pool every 15 minutes for
-24 hours (Ctrl+C stops it any time; the keystore password is asked once). Sizes follow each pool's reserves and lean
-back toward the oracle price, so charts move like a market and the circuit breaker never trips.
+Router swaps give every pool chart, sparkline and the event feed real history. Young pools are charted trade by trade,
+so a quick run already moves every chart: 30 rounds, one about every 40 seconds (Ctrl+C stops it any time; the keystore
+password is asked once). Sizes follow each pool's reserves and lean back toward the oracle price, so charts move like a
+market and the circuit breaker never trips. For a slow day-long history use `96 900` instead.
 
 ```bash
 # Run in: ROOT (ASTERRAPOOLS)
-bash scripts/testnet-activity.sh 96 900
+bash scripts/testnet-activity.sh 30 10
 ```

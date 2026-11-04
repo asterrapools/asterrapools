@@ -165,6 +165,8 @@ export type ApiPoolWithOracle = ApiPool & { oracle?: ApiOracleState | null };
 export interface ApiPoolDetail extends ApiPoolWithOracle {
   candles?: { t: string; open: number; high: number; low: number; close: number; volume_usd: number; fees_usd?: number; tvl_usd?: number | null; trades?: number }[];
   price_series?: { t: string; price: number }[];
+  /** a short trading history: volume and fees in minute-scale buckets instead of hourly candles */
+  flow?: { t: string; volume_usd: number; fees_usd: number }[];
 }
 
 // ---------------------------------------------------------------------------

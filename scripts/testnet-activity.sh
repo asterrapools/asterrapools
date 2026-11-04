@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Jalankan di: ROOT  ->  bash scripts/testnet-activity.sh [rounds] [seconds-between-rounds]
-#   e.g. bash scripts/testnet-activity.sh 96 900     (one swap per pool every 15 minutes for 24 hours; Ctrl+C stops it)
+#   e.g. bash scripts/testnet-activity.sh 30 10      (a round about every 40 s for ~20 minutes; Ctrl+C stops it)
+#        bash scripts/testnet-activity.sh 96 900     (one swap per pool every 15 minutes for 24 hours)
 # Sends router swaps through every Asterra pool on Robinhood Chain Testnet, so the pool charts, analytics and event feed
 # get real history. Sizes and directions come from scripts/activity-plan.mjs: a slice of each pool's reserve, leaning
 # back toward the oracle price, so prices move like a market and never trip the circuit breaker. Uses the deployer
@@ -55,8 +56,11 @@ for round in $(seq 1 "$ROUNDS"); do
       DAMM) hop="[(3,$pool,$tin,$tout,0x)]" ;;
       *) continue ;;
     esac
-    # fixed gas limit: the hook's fee state moves with block time, so an estimate taken a block earlier can fall short
-    if send --gas-limit 1000000 "$ROUTER" "swap((uint8,address,address,address,bytes)[],uint256,uint256,address,uint256,bool)" "$hop" "$amt" 0 "$DEPLOYER_ADDRESS" $(( $(date +%s) + 1800 )) false; then echo -n "."; else echo -n "x"; fi
+    # fixed gas limit: the hook's fee state moves with block time, so an estimate taken a block earlier can fall short.
+    # cast send also exits 0 for a reverted transaction, so the receipt status decides between . and x
+    out=$(cast send --rpc-url "$RPC" --keystore "$KEYSTORE" --password-file "$PW" --gas-limit 1000000 "$ROUTER" \
+      "swap((uint8,address,address,address,bytes)[],uint256,uint256,address,uint256,bool)" "$hop" "$amt" 0 "$DEPLOYER_ADDRESS" $(( $(date +%s) + 1800 )) false 2>&1) || true
+    if grep -qE "^status +1 " <<<"$out"; then echo -n "."; else echo -n "x"; fi
   done 3<<<"$PLAN"
   echo " round $round/$ROUNDS $(date +%H:%M)"
   # the indexer runs every minute; the next round plans from the prices this one left behind

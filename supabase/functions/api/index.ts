@@ -5,6 +5,7 @@ import { createPublicClient, http, parseAbi, type Hex } from "npm:viem@2.57.7";
 import { chunked } from "../_shared/chunking.ts";
 import { toHuman } from "../_shared/math.ts";
 import { dashboardStats, pickFeatured, rankDashboard } from "../_shared/ranking.ts";
+import { type Trade, TRADE_CHART_MAX, tradeFlow, tradePrices } from "../_shared/trades.ts";
 
 const CORS = {
   "access-control-allow-origin": "*",
@@ -84,8 +85,24 @@ async function health() {
 }
 
 async function overview(chain: number) {
-  const rows = (await q(db.from("pool_overview").select("*").eq("chain_id", chain))).map(pool);
-  return FEATURES.has("launchpad") ? rows : rows.filter((p) => p.venue !== "LAUNCH");
+  const all = (await q(db.from("pool_overview").select("*").eq("chain_id", chain))).map(pool);
+  const rows = FEATURES.has("launchpad") ? all : all.filter((p) => p.venue !== "LAUNCH");
+  // young Asterra pools: the 24h sparkline trade by trade (hourly points would show their first trades as one step)
+  const young = rows.filter((p) => !p.external && p.trades_24h >= 2 && p.trades_24h <= 200);
+  if (!young.length) return rows;
+  const trades = await q(
+    db.from("swaps").select("pool_id,ts,price,amount_usd").eq("chain_id", chain).in("pool_id", young.map((p) => p.pool_id))
+      .gte("ts", new Date(Date.now() - 86_400_000).toISOString()).order("ts").limit(young.length * 200),
+  );
+  for (const p of young) {
+    const mine = trades.filter((x) => x.pool_id === p.pool_id && x.price !== null);
+    if (mine.length < 2) continue;
+    // led by the price 24h ago, so the line's direction matches the 24h change
+    const lead = p.sparkline.length ? [p.sparkline[0]] : [];
+    p.sparkline = [...lead, ...mine.map((x) => x.price)];
+    p.volume_sparkline = [...lead.map(() => 0), ...mine.map((x) => x.amount_usd ?? 0)];
+  }
+  return rows;
 }
 
 /** Oracle state for stock pools: reference price (hub oracle) vs the pool's implied price. */
@@ -129,7 +146,17 @@ async function poolDetail(chain: number, id: string) {
     t: h.hour, open: h.open_price ?? h.close_price, high: h.high_price ?? h.close_price, low: h.low_price ?? h.close_price, close: h.close_price, volume_usd: h.volume_usd ?? 0,
     fees_usd: h.fees_usd ?? 0, tvl_usd: h.tvl_usd, trades: h.trades ?? 0,
   }));
-  return { ...p, oracle: oracleState(p, tokens), candles, price_series: candles.map((c) => ({ t: c.t, price: c.close })) };
+  const detail = { ...p, oracle: oracleState(p, tokens), candles, price_series: candles.map((c) => ({ t: c.t, price: c.close })) };
+  // a short trading history is charted trade by trade (price) and in minute buckets (volume, fees)
+  const trades = await q<Trade[]>(
+    db.from("swaps").select("ts,price,amount_usd,fee_usd").eq("chain_id", chain).eq("pool_id", p.pool_id)
+      .gte("ts", new Date(Date.now() - 30 * 86_400_000).toISOString()).order("ts", { ascending: false }).limit(TRADE_CHART_MAX + 1),
+  );
+  if (trades.length < 2 || trades.length > TRADE_CHART_MAX) return detail;
+  trades.reverse();
+  const firstHour = new Date(trades[0]!.ts).setUTCMinutes(0, 0, 0);
+  const prior = candles.filter((c) => Date.parse(c.t) < firstHour).at(-1);
+  return { ...detail, price_series: tradePrices(trades, prior ? { t: prior.t, price: prior.close } : null), flow: tradeFlow(trades) };
 }
 
 async function dashboard(chain: number) {
