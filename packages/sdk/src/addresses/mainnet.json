@@ -10,7 +10,7 @@
   "dlmmFactory": "0x7e63fa168308b82E0a469313C6c983e21d12532B",
   "dlmmLimitOrders": "0x22d203216eF35E8f13e72122a1FCf90156d69a46",
   "dammFactory": "0x61d50a7fDf0A3996F6e247Fddfb62680afa36cC8",
-  "launchpad": null,
+  "launchpad": "0xF5Ed40172CFe312fBCfE5238481634E83C6434f3",
   "lendingVault": null,
   "creditManager": null,
   "buyback": null,
@@ -29,12 +29,32 @@
       "kind": "canonical",
       "name": "Global Dollar",
       "symbol": "USDG"
+    },
+    "TSLA": {
+      "address": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "Tesla • Robinhood Token",
+      "symbol": "TSLA"
+    },
+    "NVDA": {
+      "address": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "NVIDIA • Robinhood Token",
+      "symbol": "NVDA"
+    },
+    "AAPL": {
+      "address": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+      "decimals": 18,
+      "kind": "stock",
+      "name": "Apple • Robinhood Token",
+      "symbol": "AAPL"
     }
   },
   "oracles": {},
   "startBlock": 105952745,
   "hidden": {
-    "launchpad": "0xF5Ed40172CFe312fBCfE5238481634E83C6434f3",
     "lendingVault": "0xc006D85eDD6A8A689d6fb4956Ed93F55f370e177",
     "creditManager": "0x7a06C9aD1337a3981d14AFbb62DDcc2A8697a85e"
   }
