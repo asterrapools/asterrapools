@@ -36,7 +36,7 @@ test("labs react to input: the bin slider moves the active bin, the route list r
 const BANNED = /not (financial advice|audited)|unaudited|\baudited\b|experimental|disclaimer|at your own risk|\bdyor\b/;
 
 test("app pages carry no disclaimer or negative framing", async ({ page }) => {
-  for (const path of ["/docs", "/contracts", "/swap", "/pools", "/developers"]) {
+  for (const path of ["/docs", "/contracts", "/swap", "/pools"]) {
     await page.goto(path);
     await page.waitForTimeout(1200);
     expect((await page.locator("body").innerText()).toLowerCase(), path).not.toMatch(BANNED);

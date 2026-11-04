@@ -11,8 +11,6 @@ import {IAsterraHub, AssetClass} from "../src/interfaces/IAsterraHub.sol";
 import {ILendingVault, IAsterraPositions, IAsterraRouter} from "../src/interfaces/IAsterraPeriphery.sol";
 import {AsterraLaunchpad} from "../src/launchpad/AsterraLaunchpad.sol";
 import {AsterraLaunchToken} from "../src/launchpad/AsterraLaunchToken.sol";
-import {AsterraToken} from "../src/token/AsterraToken.sol";
-import {AsterraBuyback} from "../src/buyback/AsterraBuyback.sol";
 import {AsterraLendingVault} from "../src/credit/AsterraLendingVault.sol";
 import {AsterraCreditManager} from "../src/credit/AsterraCreditManager.sol";
 
@@ -20,7 +18,7 @@ import {AsterraCreditManager} from "../src/credit/AsterraCreditManager.sol";
 ///         - Assets: WETH and the stablecoin as CANONICAL (no oracle yet). Stock tokens as STOCK with enabled=false,
 ///           so the hook refuses to initialize any pool with them until stock pools open (AssetNotEnabled).
 ///         - Launchpad: deployed, not a hub registrar, so `create` reverts at registerPool.
-///         - ASTER + buyback: ASTER minted once to the deployer; the hub keeps a 0 protocol fee share (Deploy sets it).
+///         - No ASTER or buyback: the token launches outside the protocol and its buyback & burn runs there too.
 ///         - Credit: vault over the stablecoin with supply and borrow caps at 0 and no credit manager set.
 ///         Opening a module later is one owner transaction each (docs/RELEASE_PLAN.md, section 1).
 /// @dev NETWORK=<net> STABLECOIN=0x... STOCK_TOKENS=0x..,0x.. forge script script/DeployGated.s.sol ...
@@ -32,8 +30,6 @@ abstract contract GatedModules is Script {
 
     struct Gated {
         address launchpad;
-        address aster;
-        address buyback;
         address lendingVault;
         address creditManager;
     }
@@ -64,13 +60,6 @@ abstract contract GatedModules is Script {
                 )
             )
         );
-        o.aster = address(new ERC1967Proxy(address(new AsterraToken()), abi.encodeCall(AsterraToken.initialize, (owner, owner))));
-        o.buyback = address(
-            new ERC1967Proxy(
-                address(new AsterraBuyback()),
-                abi.encodeCall(AsterraBuyback.initialize, (owner, IAsterraHub(hub), IAsterraRouter(router), o.aster))
-            )
-        );
         o.lendingVault = address(
             new ERC1967Proxy(
                 address(new AsterraLendingVault()),
@@ -91,16 +80,12 @@ abstract contract GatedModules is Script {
 
     function _logGated(Gated memory o) internal pure {
         console2.log("launchpad    ", o.launchpad);
-        console2.log("aster         ", o.aster);
-        console2.log("buyback      ", o.buyback);
         console2.log("lendingVault ", o.lendingVault);
         console2.log("creditManager", o.creditManager);
     }
 
     function _writeGated(string memory path, Gated memory o) internal {
         _putGated(path, ".hidden.launchpad", o.launchpad);
-        _putGated(path, ".hidden.aster", o.aster);
-        _putGated(path, ".hidden.buyback", o.buyback);
         _putGated(path, ".hidden.lendingVault", o.lendingVault);
         _putGated(path, ".hidden.creditManager", o.creditManager);
     }

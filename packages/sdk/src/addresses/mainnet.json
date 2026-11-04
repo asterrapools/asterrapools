@@ -3,13 +3,13 @@
   "weth": "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
   "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
   "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
-  "hub": null,
-  "hook": null,
-  "router": null,
-  "positions": null,
-  "dlmmFactory": null,
-  "dlmmLimitOrders": null,
-  "dammFactory": null,
+  "hub": "0x873110e60b5d176cde20C6F128caF1A17D628CE5",
+  "hook": "0x74EB745aDD95806a5bB00161EdDe47C5f71dfAcC",
+  "router": "0x56b4000A3AEEf3EFB8cD7ddB77252D9c62b494d8",
+  "positions": "0x5B9519F659cc0b6D1d2f5EA2D3b24dbc25638E3A",
+  "dlmmFactory": "0x7e63fa168308b82E0a469313C6c983e21d12532B",
+  "dlmmLimitOrders": "0x22d203216eF35E8f13e72122a1FCf90156d69a46",
+  "dammFactory": "0x61d50a7fDf0A3996F6e247Fddfb62680afa36cC8",
   "launchpad": null,
   "lendingVault": null,
   "creditManager": null,
@@ -29,29 +29,13 @@
       "kind": "canonical",
       "name": "Global Dollar",
       "symbol": "USDG"
-    },
-    "TSLA": {
-      "address": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
-      "decimals": 18,
-      "kind": "stock",
-      "name": "Tesla • Robinhood Token",
-      "symbol": "TSLA"
-    },
-    "NVDA": {
-      "address": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
-      "decimals": 18,
-      "kind": "stock",
-      "name": "NVIDIA • Robinhood Token",
-      "symbol": "NVDA"
-    },
-    "AAPL": {
-      "address": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
-      "decimals": 18,
-      "kind": "stock",
-      "name": "Apple • Robinhood Token",
-      "symbol": "AAPL"
     }
   },
   "oracles": {},
-  "startBlock": 0
+  "startBlock": 105952745,
+  "hidden": {
+    "launchpad": "0xF5Ed40172CFe312fBCfE5238481634E83C6434f3",
+    "lendingVault": "0xc006D85eDD6A8A689d6fb4956Ed93F55f370e177",
+    "creditManager": "0x7a06C9aD1337a3981d14AFbb62DDcc2A8697a85e"
+  }
 }

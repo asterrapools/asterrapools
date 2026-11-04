@@ -21,8 +21,6 @@ const RUNS = {
   // VERIFY_DRY_RUN=1 reads the dry run instead, to prove the packages before the real broadcast
   mainnet: [
     { file: process.env.VERIFY_DRY_RUN ? "DeployMainnet.s.sol/4663/dry-run/deployAll-latest.json" : "DeployMainnet.s.sol/4663/deployAll-latest.json" },
-    // v1.3: new hook and DLMM pool implementations (the v1.0 ones above no longer match the source and are skipped)
-    { file: "ReleaseV13.s.sol/4663/run-latest.json", implementations: true },
   ],
 };
 
