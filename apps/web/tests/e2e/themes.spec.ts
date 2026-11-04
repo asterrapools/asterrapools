@@ -28,8 +28,11 @@ for (const theme of ["dark", "light"] as const) {
       await page.emulateMedia({ reducedMotion: "reduce" });
       await page.goto(path);
       await expect(page.locator("html")).toHaveClass(theme === "dark" ? /dark/ : /^(?!.*dark)/);
-      // the faucet reads its token list from the chain
-      if (path === "/faucet") await expect(page.getByText("Asterra Test USD")).toBeVisible({ timeout: 20_000 });
+      // the faucet reads its token list from the chain; a mainnet build points visitors to the testnet instead
+      if (path === "/faucet") {
+        const ready = process.env.NEXT_PUBLIC_NETWORK === "mainnet" ? page.getByRole("button", { name: /switch to testnet/i }) : page.getByText("Asterra Test USD");
+        await expect(ready).toBeVisible({ timeout: 20_000 });
+      }
       await page.waitForTimeout(800);
       const name = path === "/" ? "landing" : path.slice(1);
       await page.screenshot({ path: `${OUT}/${name}-${theme}.png`, fullPage: false });

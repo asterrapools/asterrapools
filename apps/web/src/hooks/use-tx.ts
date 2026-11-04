@@ -58,8 +58,11 @@ export function useTx() {
         // simulate first for a readable revert reason
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { request } = await client.simulateContract({ ...(req as any), account });
+        // a bare estimate can run out of gas in nested token calls; unused gas is refunded, so pad it by 20%
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const hash = await writeContractAsync(request as any);
+        const gas = await client.estimateContractGas({ ...(req as any), account });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const hash = await writeContractAsync({ ...(request as any), gas: (gas * 12n) / 10n });
         setState({ status: "pending", hash, error: null });
         const receipt = await client.waitForTransactionReceipt({ hash });
         if (receipt.status !== "success") throw new Error("Transaction reverted");
