@@ -32,7 +32,7 @@
 | Testnet broadcast: 119 transactions, 34/34 contracts verified on the explorer | done |
 | VPS deploy + HTTPS, testnet activity swaps | done |
 
-## Phase 2 · Mainnet V1.0 / V2.0
+## Phase 2 · Mainnet V1.0 / V2.0 / V3.0
 
 | Task | Status |
 |---|---|
@@ -43,7 +43,9 @@
 | `mainnet-launch-v1.sh` (USDG buy, WETH/USDG seed, smoke swap) and `mainnet-v2.sh` (feeds, stocks, launchpad, TSLA/USDG) | done, fork-rehearsed |
 | Mainnet V1.0: 36 deploy transactions (0.000804 ETH), WETH/USDG seeded (≈ $5.4), apex serves mainnet, indexer on 4663 | done 2026-11-04 |
 | Explorer verification (`pnpm mainnet:verify`, 26/26 packages ready) | waiting (user, screen recording) |
-| V2.0 open | waiting (M2) |
+| V2.0 open: 5 feeds, 3 stock tokens, launchpad registrar, TSLA/USDG seeded | done 2026-11-05 |
+| `mainnet-v3.sh` (credit manager, caps, first supply), fork-rehearsed with pledge, borrow, repay | done |
+| V3.0 open | waiting (M3) |
 
 ## Decisions (one line each)
 

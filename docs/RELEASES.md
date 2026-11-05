@@ -7,8 +7,8 @@ and shows them in the web app. Modules whose release has not come yet stay locke
 |---|---|---|---|---|
 | 1 | Testnet | Robinhood Chain Testnet | Every contract deployed; V1.0 modules open, V2.0 / V3.0 modules deployed and locked on-chain | done 2026-11-04 |
 | 2 | **ASTERRAPOOLS V1.0** | Robinhood Chain | Smart router, v4 hook (dynamic fee), DLMM + limit orders, DAMM, LP positions, analytics, event feed | live 2026-11-04 |
-| 3 | **ASTERRAPOOLS V2.0** | Robinhood Chain | Stock pools with the oracle guard, launchpad | about 1 hour after V1.0 |
-| 4 | **ASTERRAPOOLS V3.0** | Robinhood Chain | Credit (LP positions as collateral) | planned |
+| 3 | **ASTERRAPOOLS V2.0** | Robinhood Chain | Stock pools with the oracle guard, launchpad | live 2026-11-05 |
+| 4 | **ASTERRAPOOLS V3.0** | Robinhood Chain | Credit (LP positions as collateral) | live 2026-11-05 |
 
 Out of scope (user's decision, 2026-11-04):
 
@@ -42,7 +42,12 @@ V2.0:
 2. Claude: add TSLA, NVDA, AAPL back to `mainnet.json`, set `FEATURES_mainnet=launchpad` and `FEATURES=launchpad`,
    rebuild and redeploy.
 
-V3.0: open credit (caps + credit manager), then `credit` in both flags.
+V3.0:
+
+1. `bash scripts/mainnet-v3.sh`: vault credit manager, caps (supply 100,000 / borrow 80,000 USDG), the deployer's
+   USDG as first supply. Fork-rehearsed 2026-11-05 including pledge, borrow, repay; ≈ 0.0000045 ETH.
+2. Claude: `lendingVault` and `creditManager` out of `hidden` in `mainnet.json`, `FEATURES_mainnet=launchpad,credit`
+   and `FEATURES=launchpad,credit`, rebuild and redeploy. Footer v3.0.0.
 
 Rehearsed end to end on a mainnet fork (2026-11-04): deploy, V1.0 seed and smoke swap, V2.0 feeds, launchpad and
 TSLA/USDG pool all succeed; quotes route WETH → USDG and USDG → TSLA after V2.0.

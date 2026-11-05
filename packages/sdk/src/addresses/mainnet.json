@@ -11,8 +11,8 @@
   "dlmmLimitOrders": "0x22d203216eF35E8f13e72122a1FCf90156d69a46",
   "dammFactory": "0x61d50a7fDf0A3996F6e247Fddfb62680afa36cC8",
   "launchpad": "0xF5Ed40172CFe312fBCfE5238481634E83C6434f3",
-  "lendingVault": null,
-  "creditManager": null,
+  "lendingVault": "0xc006D85eDD6A8A689d6fb4956Ed93F55f370e177",
+  "creditManager": "0x7a06C9aD1337a3981d14AFbb62DDcc2A8697a85e",
   "buyback": null,
   "aster": null,
   "tokens": {
@@ -53,9 +53,5 @@
     }
   },
   "oracles": {},
-  "startBlock": 105952745,
-  "hidden": {
-    "lendingVault": "0xc006D85eDD6A8A689d6fb4956Ed93F55f370e177",
-    "creditManager": "0x7a06C9aD1337a3981d14AFbb62DDcc2A8697a85e"
-  }
+  "startBlock": 105952745
 }
