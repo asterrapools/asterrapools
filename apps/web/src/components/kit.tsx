@@ -206,8 +206,8 @@ export function TxLink({ hash }: { hash: string }) {
 }
 
 export function VenueBadge({ venue, external }: { venue: string; external?: boolean }) {
-  // an external pool is plain Uniswap v4, not one of Asterra's hook pools
-  if (external) return <Badge variant="neutral">Uniswap v4</Badge>;
+  // an external pool is plain v4, not one of Asterra's hook pools: no source badge, but never the "hook pool" label
+  if (external) return <Badge variant="neutral">v4 pool</Badge>;
   const variant = venue === "V4" ? "default" : venue === "LAUNCH" ? "warning" : "accent";
   return <Badge variant={variant}>{VENUE_LABEL[venue] ?? venue}</Badge>;
 }

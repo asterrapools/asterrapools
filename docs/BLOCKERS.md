@@ -10,7 +10,8 @@ Commands that need the keystore password or a login are run by you in your own t
 | B4 | GHCR image visibility: the VPS gets `unauthorized` pulling the web image | done: testnet site live |
 | B5 | Testnet activity swaps after B2–B4 (keystore password) | done: 7 pools with swaps |
 | M1 | Mainnet V1.0 deploy + seed (keystore password) | done 2026-11-04: 36 + 5 transactions, asterrapools.tech serves mainnet |
-| M2 | Mainnet V2.0 open (keystore password), about 1 hour after M1 | open, ready: rehearsed on a mainnet fork |
+| M2 | Mainnet V2.0 open (keystore password), about 1 hour after M1 | done 2026-11-05 |
+| M3 | Mainnet V3.0 open (keystore password) | open, ready: rehearsed on a mainnet fork |
 
 ## M1 · Mainnet V1.0
 
@@ -36,6 +37,17 @@ bash scripts/mainnet-v2.sh
 ```
 
 Then tell Claude: the stock tokens and the launchpad appear in the web app after one rebuild.
+
+## M3 · Mainnet V3.0
+
+Opens credit: 4 transactions, about 0.000005 ETH. Prints the plan and asks `y` before the password.
+
+```bash
+# Run in: ROOT (ASTERRAPOOLS)
+bash scripts/mainnet-v3.sh
+```
+
+Then tell Claude: the Credit page and the credit contracts appear in the web app after one rebuild.
 
 ## B1 · VPS SSH
 

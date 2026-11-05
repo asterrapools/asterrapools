@@ -204,8 +204,8 @@ export function CreditView() {
       ) : (
         <>
           <StatGrid className="mt-8">
-            <Stat label="Supplied" value={v.totalAssets !== undefined ? formatTokenAmount(v.totalAssets, d, 0) : PENDING} hint={v.token?.symbol} />
-            <Stat label="Borrowed" value={v.totalBorrows !== undefined ? formatTokenAmount(v.totalBorrows, d, 0) : PENDING} hint={v.utilization !== undefined ? `${formatBps(Number(v.utilization))} utilized` : undefined} />
+            <Stat label="Supplied" value={v.totalAssets !== undefined ? formatTokenAmount(v.totalAssets, d, 2) : PENDING} hint={v.token?.symbol} />
+            <Stat label="Borrowed" value={v.totalBorrows !== undefined ? formatTokenAmount(v.totalBorrows, d, 2) : PENDING} hint={v.utilization !== undefined ? `${formatBps(Number(v.utilization))} utilized` : undefined} />
             <Stat label="Supply APR" value={formatPct(v.supplyApr)} />
             <Stat label="Borrow APR" value={formatPct(v.borrowApr)} />
           </StatGrid>
