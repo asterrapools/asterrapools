@@ -25,6 +25,8 @@ esac
 DEFAULT_VERIFIER=blockscout; [ "$NETWORK" = mainnet ] && DEFAULT_VERIFIER=sourcify
 VERIFIER="${VERIFIER:-$DEFAULT_VERIFIER}"
 SOURCIFY="https://sourcify.dev/server"
+# mainnet release = the version the web app shows (apps/web/package.json); testnet runs a pre-release
+RELEASE=""; [ "$NETWORK" = mainnet ] && RELEASE="V$(node -p "require('$ROOT/apps/web/package.json').version.replace(/\\.0$/, '')")"
 
 PKG="$ROOT/packages/contracts/verification/$NETWORK"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"; printf "\e[?25h"' EXIT
@@ -97,7 +99,7 @@ display_rows() {
 
 clear 2>/dev/null || true
 echo
-echo "  ${L}${B}◆ ASTERRAPOOLS${N}  ${B}Smart contract verification${N}"
+echo "  ${L}${B}◆ ASTERRAPOOLS${RELEASE:+ ${RELEASE}}${N}  ${B}Smart contract verification${N}"
 echo "  ${DIM}Built for the flow of every market.${N}"
 echo "  ${DIM}────────────────────────────────────────────────────────────────${N}"
 echo "  Network    ${B}${NAME}${N} ${DIM}· chain ${CHAIN}${N}"
@@ -277,7 +279,7 @@ done
 
 mkdir -p "$ROOT/docs/verification"
 {
-  echo "# AsterraPools contract verification: ${NAME}"
+  echo "# AsterraPools${RELEASE:+ ${RELEASE}} contract verification: ${NAME}"
   echo
   echo "Chain ID ${CHAIN}. Explorer: ${EXPLORER}. Verified with \`bash scripts/verify-contracts.sh ${NETWORK}\` on $(date -u +%Y-%m-%d)."
   echo
