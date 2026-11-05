@@ -45,7 +45,7 @@
 | Explorer verification (`pnpm mainnet:verify`, 26/26 packages ready) | waiting (user, screen recording) |
 | V2.0 open: 5 feeds, 3 stock tokens, launchpad registrar, TSLA/USDG seeded | done 2026-11-05 |
 | `mainnet-v3.sh` (credit manager, caps, first supply), fork-rehearsed with pledge, borrow, repay | done |
-| V3.0 open | waiting (M3) |
+| V3.0 open: credit manager, caps 100,000 / 80,000 USDG, first supply | done 2026-11-05 |
 
 ## Decisions (one line each)
 
