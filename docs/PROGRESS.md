@@ -63,3 +63,4 @@
 - 2026-11-04: Brief re-read: generic contract names renamed with the Asterra prefix, ASTER and launch tokens made upgradeable (user's choice). The owner can freeze ASTER later by renouncing ownership.
 - 2026-11-04: Vault share symbol `aeUSD` (AETHRA leftover) renamed `asUSD`.
 - 2026-11-04: Landing motion follows the Ascend reference video: one 3D object fixed behind the page, moving between sections on scroll.
+- 2026-11-07: The original X account is out of reach for now; a sitewide banner above the header points to @PulseOfAster (`components/layout/account-notice.tsx`).
