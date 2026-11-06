@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { ArrowRight, ArrowUpRight, Check, Copy, Layers, Route, Waves } from "lucide-react";
+import type { Address } from "viem";
 import { useBlockNumber } from "wagmi";
 import { PairLabel, Sparkline, StatusDot, VenueBadge } from "@/components/kit";
 import { SwapCard } from "@/components/swap/swap-card";
@@ -25,7 +26,7 @@ const PrismStar = dynamic(() => import("./prism-star").then((m) => m.PrismStar),
 
 const SpaceBackdrop = dynamic(() => import("./space-backdrop").then((m) => m.SpaceBackdrop), { ssr: false });
 
-const X_URL = "https://x.com/AsterraPools";
+const X_URL = "https://x.com/pulseofaster?s=21";
 
 /** Fades a block in once it scrolls into view. CSS only after the first intersection, so scrolling stays smooth. */
 function Reveal({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
@@ -89,9 +90,9 @@ const PILLARS = [
   { href: "#flow", icon: Route, n: "03", label: "Positions + smart routing" },
 ];
 
-/** Contract address of the ASTERRAPOOLS token, "Coming soon" until ASTER_TOKEN.address is set. */
-function TokenCA() {
-  const { name, address, explorer } = ASTER_TOKEN;
+/** Contract address of the ASTERRAPOOLS token, "Coming soon" until ASTER_TOKEN_ADDRESS is set on the server. */
+function TokenCA({ address }: { address: Address | null }) {
+  const { name, explorer } = ASTER_TOKEN;
   return (
     <p data-testid="token-ca" className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border bg-surface/90 px-3 py-2 font-mono text-xs">
       <span className="uppercase tracking-button text-muted">{name} CA</span>
@@ -109,7 +110,7 @@ function TokenCA() {
   );
 }
 
-function Hero() {
+function Hero({ tokenAddress }: { tokenAddress: Address | null }) {
   return (
     <section className="relative overflow-hidden" data-star="0.45 0 1 1 0 0 0 0" data-star-m="0 -0.62 0.55 1">
       <div className="pointer-events-none absolute -right-40 top-10 size-[640px] rounded-full bg-cobalt/20 blur-[120px] dark:bg-cobalt/30" />
@@ -143,7 +144,7 @@ function Hero() {
             </Button>
           </Reveal>
           <Reveal delay={280}>
-            <TokenCA />
+            <TokenCA address={tokenAddress} />
           </Reveal>
           <Reveal delay={320}>
             <ol className="grid gap-2 sm:grid-cols-3">
@@ -555,7 +556,7 @@ function Outro() {
             </Button>
             <Button asChild size="lg" variant="secondary" className="fx-prism rounded-full px-7">
               <a href={X_URL} target="_blank" rel="noopener noreferrer">
-                Follow @AsterraPools <ArrowUpRight />
+                Follow @PulseOfAster <ArrowUpRight />
               </a>
             </Button>
           </div>
@@ -565,7 +566,7 @@ function Outro() {
   );
 }
 
-export function Landing() {
+export function Landing({ tokenAddress }: { tokenAddress: Address | null }) {
   const { resolvedTheme } = useTheme();
   const mounted = useMounted();
   const dark = resolvedTheme !== "light";
@@ -580,7 +581,7 @@ export function Landing() {
       <div className="pointer-events-none fixed inset-0 -z-10" data-scene aria-hidden>
         {mounted && <PrismStar dark={dark} className="absolute inset-0" />}
       </div>
-      <Hero />
+      <Hero tokenAddress={tokenAddress} />
       <ChainSection />
       <EnginesSection />
       <FlowSection />

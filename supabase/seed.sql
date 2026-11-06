@@ -1,10 +1,10 @@
 -- AsterraPools seed: chains, empty deployments (addresses mirror packages/sdk/src/addresses/*.json) and cursors.
 -- Contract addresses are null until deployed. Load real ones with supabase/scripts/sync-deployments.mjs.
 
-insert into public.chains (chain_id, name, network, rpc_url, explorer_url, is_testnet, enabled) values
-  (31337, 'Asterra Local (testnet fork)', 'local',   'http://host.docker.internal:8545',           null,                                            true,  true),
-  (46630, 'Robinhood Chain Testnet',     'testnet', 'https://rpc.testnet.chain.robinhood.com', 'https://explorer.testnet.chain.robinhood.com', true,  true),
-  (4663,  'Robinhood Chain',             'mainnet', 'https://rpc.mainnet.chain.robinhood.com', 'https://robinhoodchain.blockscout.com',        false, true)
+insert into public.chains (chain_id, name, network, rpc_url, explorer_url, is_testnet, enabled, external_max) values
+  (31337, 'Asterra Local (testnet fork)', 'local',   'http://host.docker.internal:8545',           null,                                            true,  true, 0),
+  (46630, 'Robinhood Chain Testnet',     'testnet', 'https://rpc.testnet.chain.robinhood.com', 'https://explorer.testnet.chain.robinhood.com', true,  true, 0),
+  (4663,  'Robinhood Chain',             'mainnet', 'https://rpc.mainnet.chain.robinhood.com', 'https://robinhoodchain.blockscout.com',        false, true, 15)
 on conflict (chain_id) do update set name = excluded.name, network = excluded.network, rpc_url = excluded.rpc_url,
   explorer_url = excluded.explorer_url, is_testnet = excluded.is_testnet;
 

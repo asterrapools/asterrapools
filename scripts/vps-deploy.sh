@@ -22,7 +22,8 @@ if ! ssh "$HOST" "test -f $DIR/infra/.env"; then
   ssh "$HOST" "chmod 600 $DIR/infra/.env"
 fi
 
-profile=""; [ "$NET" = mainnet ] && profile="--profile mainnet"
+# mainnet is live since V1.0: keep web-mainnet in every run, or --remove-orphans could stop it during a testnet deploy
+profile="--profile mainnet"
 # the remote script arrives on stdin: commands inside it must not read stdin, or they swallow the rest of it
 ssh "$HOST" bash -s <<REMOTE
 set -euo pipefail

@@ -32,7 +32,7 @@
 | Testnet broadcast: 119 transactions, 34/34 contracts verified on the explorer | done |
 | VPS deploy + HTTPS, testnet activity swaps | done |
 
-## Phase 2 · Mainnet V1.0 / V2.0
+## Phase 2 · Mainnet V1.0 / V2.0 / V3.0
 
 | Task | Status |
 |---|---|
@@ -41,7 +41,14 @@
 | Developers / SDK page removed | done |
 | Stock tokens out of `mainnet.json` until V2.0 | done |
 | `mainnet-launch-v1.sh` (USDG buy, WETH/USDG seed, smoke swap) and `mainnet-v2.sh` (feeds, stocks, launchpad, TSLA/USDG) | done, fork-rehearsed |
-| Mainnet broadcast | waiting (M1) |
+| Mainnet V1.0: 36 deploy transactions (0.000804 ETH), WETH/USDG seeded (≈ $5.4), apex serves mainnet, indexer on 4663 | done 2026-11-04 |
+| Explorer verification (`pnpm mainnet:verify`, see `docs/verification/mainnet.md`) | done 2026-11-04, exact match on Sourcify |
+| V2.0 open: 5 feeds, 3 stock tokens, launchpad registrar, TSLA/USDG seeded | done 2026-11-05 |
+| `mainnet-v3.sh` (credit manager, caps, first supply), fork-rehearsed with pledge, borrow, repay | done |
+| V3.0 open: credit manager, caps 100,000 / 80,000 USDG, first supply | done 2026-11-05 |
+| ASTER in the mainnet token list | done 2026-11-06 |
+| `mainnet-aster.sh` (USDG/ASTER seed, swap through Uniswap's Universal Router), fork-rehearsed | done 2026-11-06 |
+| USDG/ASTER open: $0.10 per side, ±25% range, $0.01 swap through the Universal Router | done 2026-11-06 |
 
 ## Decisions (one line each)
 
@@ -56,3 +63,4 @@
 - 2026-11-04: Brief re-read: generic contract names renamed with the Asterra prefix, ASTER and launch tokens made upgradeable (user's choice). The owner can freeze ASTER later by renouncing ownership.
 - 2026-11-04: Vault share symbol `aeUSD` (AETHRA leftover) renamed `asUSD`.
 - 2026-11-04: Landing motion follows the Ascend reference video: one 3D object fixed behind the page, moving between sections on scroll.
+- 2026-11-07: The original X account is out of reach for now; a sitewide banner above the header points to @PulseOfAster (`components/layout/account-notice.tsx`).

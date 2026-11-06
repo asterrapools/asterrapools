@@ -18,7 +18,7 @@ MIN_FRESH_LEFT=1800                          # refuse when a feed has under 30 m
 
 [ "$(cast chain-id --rpc-url "$RPC")" = "4663" ] || { echo "RPC is not Robinhood Chain mainnet (4663)"; exit 1; }
 get() { node -e "console.log(require('$ROOT/packages/sdk/src/addresses/mainnet.json').$1 ?? '')"; }
-HUB="$(get hub)"; LAUNCHPAD="$(get hidden?.launchpad)"
+HUB="$(get hub)"; LAUNCHPAD="$(get launchpad)"
 [ -n "$HUB" ] && [ -n "$LAUNCHPAD" ] || { echo "STOP: mainnet.json has no hub or launchpad. Deploy V1.0 first."; exit 1; }
 WETH="0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73"
 USDG="0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168"

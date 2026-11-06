@@ -5,6 +5,7 @@ import { Unbounded } from "next/font/google";
 import "@rainbow-me/rainbowkit/styles.css";
 import "@/styles/globals.css";
 import { Providers } from "@/components/providers";
+import { AccountNotice } from "@/components/layout/account-notice";
 import { Intro } from "@/components/layout/intro";
 import { INTRO_KEY } from "@/lib/utils";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   description:
     "AsterraPools builds liquidity on Robinhood Chain. DLMM bins and DAMM curves for every kind of pool, LP positions as NFTs and one smart router across every venue.",
   openGraph: { siteName: "AsterraPools", type: "website" },
-  twitter: { card: "summary_large_image", site: "@AsterraPools", creator: "@AsterraPools" },
+  twitter: { card: "summary_large_image", site: "@PulseOfAster", creator: "@PulseOfAster" },
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://testnet.asterrapools.tech"),
 };
 
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Intro />
         <Providers>
           <div className="flex min-h-dvh flex-col">
+            <AccountNotice />
             <SiteHeader />
             <main className="flex-1">{children}</main>
             <SiteFooter />

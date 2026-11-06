@@ -1,6 +1,6 @@
 {
   "name": "@asterrapools/web",
-  "version": "1.0.0-testnet.1",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "scripts": {

@@ -206,8 +206,8 @@ export function TxLink({ hash }: { hash: string }) {
 }
 
 export function VenueBadge({ venue, external }: { venue: string; external?: boolean }) {
-  // an external pool is plain Uniswap v4, not one of Asterra's hook pools
-  if (external) return <Badge variant="neutral">Uniswap v4</Badge>;
+  // an external pool is plain v4, not one of Asterra's hook pools: no source badge, but never the "hook pool" label
+  if (external) return <Badge variant="neutral">v4 pool</Badge>;
   const variant = venue === "V4" ? "default" : venue === "LAUNCH" ? "warning" : "accent";
   return <Badge variant={variant}>{VENUE_LABEL[venue] ?? venue}</Badge>;
 }
@@ -455,7 +455,7 @@ export function TxNotice({ tx }: { tx: ReturnType<typeof useTx> }) {
 
 /**
  * Renders an Approve button while the allowance for `spender` is below `amount`, then `children`.
- * Native ETH never needs approval.
+ * Native ETH never needs approval. While the allowance loads, a disabled button stands in for both.
  */
 export function ApproveGate({
   token,
@@ -468,8 +468,16 @@ export function ApproveGate({
   amount: bigint;
   children: React.ReactNode;
 }) {
-  const { allowance, refetch } = useAllowance(token?.address, spender);
+  const { allowance, refetch, isLoading } = useAllowance(token?.address, spender);
   const tx = useTx();
+  // until the allowance is read the action would revert, so a disabled button stands in for it
+  if (token && spender && amount !== 0n && isLoading) {
+    return (
+      <Button className="w-full" size="lg" disabled>
+        Checking allowance…
+      </Button>
+    );
+  }
   if (!token || !spender || amount === 0n || allowance === undefined || allowance >= amount) return <>{children}</>;
   return (
     <div className="space-y-2">

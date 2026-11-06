@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { Address } from "viem";
-import { useAccount } from "wagmi";
+import { encodeAbiParameters, keccak256, type Address, type Hex } from "viem";
+import { useAccount, useReadContract } from "wagmi";
 import { AmountField, ApproveGate, ConnectGate, KV, NotDeployed, TxNotice } from "@/components/kit";
 import { Button } from "@/components/ui/button";
 import { useTx } from "@/hooks/use-tx";
@@ -12,7 +12,10 @@ import { distributeBins, priceFromBin, type BinShape } from "@/lib/dlmm";
 import { formatNumber, parseAmount } from "@/lib/format";
 import { poolKeyFromApi } from "@/lib/routing";
 import { fullRangeTicks, liquidityForAmounts, Q96 } from "@/lib/v4math";
+import { CHAIN_ID } from "@/lib/network";
 import { cn } from "@/lib/utils";
+
+const EXTSLOAD = [{ type: "function", name: "extsload", stateMutability: "view", inputs: [{ name: "slot", type: "bytes32" }], outputs: [{ type: "bytes32" }] }] as const;
 
 const deadline = () => BigInt(Math.floor(Date.now() / 1000) + 600);
 
@@ -87,11 +90,23 @@ function V4Deposit({ pool }: { pool: ApiPool }) {
   const [a1, setA1] = React.useState("");
   const [range, setRange] = React.useState(0);
   const tx = useTx();
+  // live slot0 from the PoolManager (StateLibrary: pools mapping at slot 6): the indexed price can trail a trade, and
+  // liquidity sized from a stale price asks for more of one token than its max, so the mint reverts with Slippage
+  const manager = addressOf("poolManager");
+  const slot0 = useReadContract({
+    address: manager ?? undefined,
+    abi: EXTSLOAD,
+    functionName: "extsload",
+    args: [keccak256(encodeAbiParameters([{ type: "bytes32" }, { type: "uint256" }], [pool.pool_id as Hex, 6n]))],
+    chainId: CHAIN_ID,
+    query: { enabled: Boolean(manager), refetchInterval: 12_000 },
+  });
   if (!positions) return <NotDeployed name="Positions" />;
-  if (!pool.sqrt_price_x96) return <p className="text-sm text-muted">Pool price not indexed yet.</p>;
+  const liveSqrtP = slot0.data ? BigInt(slot0.data) & ((1n << 160n) - 1n) : 0n;
+  if (!liveSqrtP && !pool.sqrt_price_x96) return <p className="text-sm text-muted">Pool price not indexed yet.</p>;
 
   const spacing = pool.tick_spacing ?? 60;
-  const sqrtP = BigInt(pool.sqrt_price_x96);
+  const sqrtP = liveSqrtP || BigInt(pool.sqrt_price_x96!);
   const tick = Math.log((Number(sqrtP) / Q96) ** 2) / Math.log(1.0001);
   const [fullLo, fullHi] = fullRangeTicks(spacing);
   const span = range === 0 ? 0 : Math.log(1 + range / 100) / Math.log(1.0001);

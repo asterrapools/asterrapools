@@ -14,7 +14,7 @@
 <p align="center">
   <a href="https://asterrapools.tech">asterrapools.tech</a> ·
   <a href="https://testnet.asterrapools.tech">Testnet app</a> ·
-  <a href="https://x.com/AsterraPools">@AsterraPools</a>
+  <a href="https://x.com/pulseofaster?s=21">@PulseOfAster</a>
 </p>
 
 <p align="center">
