@@ -4,10 +4,10 @@ import * as React from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { ArrowRight, ArrowUpRight, Check, Copy, Layers, Route, Waves } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Layers, Route, Waves } from "lucide-react";
 import type { Address } from "viem";
 import { useBlockNumber } from "wagmi";
-import { PairLabel, Sparkline, StatusDot, VenueBadge } from "@/components/kit";
+import { CopyAddress, PairLabel, Sparkline, StatusDot, VenueBadge } from "@/components/kit";
 import { SwapCard } from "@/components/swap/swap-card";
 import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/hooks/use-api";
@@ -471,19 +471,6 @@ function TrySection() {
 }
 
 // ------------------------------------------------------------------ contracts
-
-function CopyAddress({ value }: { value: string }) {
-  const [done, setDone] = React.useState(false);
-  return (
-    <button
-      aria-label="Copy address"
-      onClick={() => void navigator.clipboard?.writeText(value).then(() => (setDone(true), setTimeout(() => setDone(false), 1200)))}
-      className="text-muted transition-ui hover:text-primary-text"
-    >
-      {done ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-    </button>
-  );
-}
 
 function ContractsSection() {
   const entries = contractGroups(DEPLOYMENT)
