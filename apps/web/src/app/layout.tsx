@@ -5,6 +5,7 @@ import { Unbounded } from "next/font/google";
 import "@rainbow-me/rainbowkit/styles.css";
 import "@/styles/globals.css";
 import { Providers } from "@/components/providers";
+import { AccountNotice } from "@/components/layout/account-notice";
 import { Intro } from "@/components/layout/intro";
 import { INTRO_KEY } from "@/lib/utils";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Intro />
         <Providers>
           <div className="flex min-h-dvh flex-col">
+            <AccountNotice />
             <SiteHeader />
             <main className="flex-1">{children}</main>
             <SiteFooter />

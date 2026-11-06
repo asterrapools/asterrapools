@@ -151,8 +151,8 @@ test("on a slow network the star waits for its artwork instead of flashing place
 test("space backdrop: a star field that answers the cursor", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("[data-sky] canvas")).toHaveCount(1, { timeout: 15_000 });
-  // empty sky above the hero copy; the camera leans toward the pointer, so moving it slides the whole field
-  const clip = { x: 250, y: 64, width: 400, height: 150 };
+  // empty sky between the header and the hero copy; the camera leans toward the pointer, so moving it slides the whole field
+  const clip = { x: 250, y: 117, width: 400, height: 135 };
   /** horizontal offset (px) that best lines up two shots of the sky */
   const shift = (a: Buffer, b: Buffer) =>
     page.evaluate(
