@@ -21,7 +21,7 @@ import { NetworkNotice } from "./network-notice";
 import { NetworkToggle } from "./network-toggle";
 import { ThemeToggle } from "./theme-toggle";
 
-const X_URL = "https://x.com/AsterraPools";
+const X_URL = "https://x.com/pulseofaster?s=21";
 
 /** X (Twitter) logo; lucide has no brand icons. */
 export function XIcon({ className }: { className?: string }) {

@@ -26,7 +26,7 @@ const PrismStar = dynamic(() => import("./prism-star").then((m) => m.PrismStar),
 
 const SpaceBackdrop = dynamic(() => import("./space-backdrop").then((m) => m.SpaceBackdrop), { ssr: false });
 
-const X_URL = "https://x.com/AsterraPools";
+const X_URL = "https://x.com/pulseofaster?s=21";
 
 /** Fades a block in once it scrolls into view. CSS only after the first intersection, so scrolling stays smooth. */
 function Reveal({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
@@ -556,7 +556,7 @@ function Outro() {
             </Button>
             <Button asChild size="lg" variant="secondary" className="fx-prism rounded-full px-7">
               <a href={X_URL} target="_blank" rel="noopener noreferrer">
-                Follow @AsterraPools <ArrowUpRight />
+                Follow @PulseOfAster <ArrowUpRight />
               </a>
             </Button>
           </div>
