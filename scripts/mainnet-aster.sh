@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Jalankan di: ROOT  ->  bash scripts/mainnet-aster.sh [--broadcast]
+# Opens and seeds USDG/ASTER behind the Asterra hook, then swaps through it from Uniswap's Universal Router
+# (script/mainnet/SeedAster.s.sol). Without --broadcast it only simulates against live mainnet state and sends nothing.
+# With --broadcast it simulates first, then asks to confirm and asks the keystore password once; the password lives only
+# in a private temp file deleted on exit.
+# SIDE_USD_E6 sets the USD value of each side, so a bigger seed after a top-up needs no code change.
+# Deploy the web release that lists ASTER first: a token indexed before it is listed keeps the kind "unknown".
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+RPC="${MAINNET_RPC_URL:-https://rpc.mainnet.chain.robinhood.com}"
+DEPLOYER_ADDRESS="0xd09D9c87ECfe008B4D6D3cEbeAd25103c16d9a7C"
+KEYSTORE="${KEYSTORE:-$HOME/.foundry/keystores/deployer}"
+export SIDE_USD_E6="${SIDE_USD_E6:-700000}"       # $0.70 per side
+export RANGE_TICKS="${RANGE_TICKS:-2230}"         # about ±25% around the opening price
+export PROOF_USDG_E6="${PROOF_USDG_E6:-10000}"    # $0.01 swap through Uniswap's Universal Router
+export RESERVE_WEI="${RESERVE_WEI:-150000000000000}" # 0.00015 ETH stays in the wallet for gas
+MODE="${1:-}"
+case "$MODE" in ""|--broadcast) ;; *) echo "usage: mainnet-aster.sh [--broadcast]"; exit 1 ;; esac
+
+[ "$(cast chain-id --rpc-url "$RPC")" = "4663" ] || { echo "RPC is not Robinhood Chain mainnet (4663)"; exit 1; }
+cd "$ROOT/packages/contracts"
+SCRIPT=script/mainnet/SeedAster.s.sol:SeedAster
+echo "Deployer: $(cast balance "$DEPLOYER_ADDRESS" --rpc-url "$RPC" -e) ETH"
+forge script "$SCRIPT" --rpc-url "$RPC" --sender "$DEPLOYER_ADDRESS"
+if [ "$MODE" != --broadcast ]; then echo "Simulated ok. Nothing sent. Add --broadcast to send."; exit 0; fi
+
+read -rp "Open and seed USDG/ASTER now? [y/N] " ok
+[ "$ok" = y ] || { echo "Nothing sent."; exit 0; }
+TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+read -rsp "Keystore password for 'deployer': " pass; echo
+printf '%s' "$pass" >"$TMP/pw"; chmod 600 "$TMP/pw"; unset pass
+ADDR="$(cast wallet address --keystore "$KEYSTORE" --password-file "$TMP/pw")"
+if [ "$(echo "$ADDR" | tr 'A-F' 'a-f')" != "$(echo "$DEPLOYER_ADDRESS" | tr 'A-F' 'a-f')" ]; then
+  echo "STOP: keystore is $ADDR, expected $DEPLOYER_ADDRESS. Nothing was sent."; exit 1
+fi
+forge script "$SCRIPT" --rpc-url "$RPC" --keystore "$KEYSTORE" --password-file "$TMP/pw" \
+  --sender "$DEPLOYER_ADDRESS" --broadcast --slow
+echo "Done. Remaining: $(cast balance "$DEPLOYER_ADDRESS" --rpc-url "$RPC" -e) ETH"

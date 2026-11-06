@@ -30,6 +30,13 @@
       "name": "Global Dollar",
       "symbol": "USDG"
     },
+    "ASTER": {
+      "address": "0x8c4be7763F446DF2b5A8c331e7CCF497e7F78b1d",
+      "decimals": 18,
+      "kind": "canonical",
+      "name": "ASTERRA POOLS",
+      "symbol": "ASTER"
+    },
     "TSLA": {
       "address": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
       "decimals": 18,

@@ -206,8 +206,9 @@ async function indexChain(db: SupabaseClient, chainId: number, deadline: number,
   const rpc = Deno.env.get(`RPC_URL_${chainId}`) ?? chain.rpc_url;
   const client = createPublicClient({ transport: http(rpc, { batch: true, retryCount: 2 }) }) as PublicClient;
 
-  // a new deployment (different addresses) rewinds the cursor to its start block
-  const depHash = JSON.stringify([A.hub, A.router, A.launchpad, dep.start_block]);
+  // a new deployment (different addresses) rewinds the cursor to its start block; a module opened later (credit) too,
+  // or its first events, sent before the address was published, would never be read. Unset modules keep old hashes.
+  const depHash = JSON.stringify([A.hub, A.router, A.launchpad, dep.start_block, ...(A.lendingVault ? [A.lendingVault] : [])]);
   const meta = (state?.meta ?? {}) as Record<string, unknown>;
   let lastBlock: number | null = state?.last_block ?? null;
   let discoveryAt = Number(meta.lastDiscovery ?? 0);

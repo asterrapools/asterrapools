@@ -11,7 +11,7 @@ Commands that need the keystore password or a login are run by you in your own t
 | B5 | Testnet activity swaps after B2–B4 (keystore password) | done: 7 pools with swaps |
 | M1 | Mainnet V1.0 deploy + seed (keystore password) | done 2026-11-04: 36 + 5 transactions, asterrapools.tech serves mainnet |
 | M2 | Mainnet V2.0 open (keystore password), about 1 hour after M1 | done 2026-11-05 |
-| M3 | Mainnet V3.0 open (keystore password) | open, ready: rehearsed on a mainnet fork |
+| M3 | Mainnet V3.0 open (keystore password) | done 2026-11-05: 4 transactions, vault funded with 0.14 USDG |
 
 ## M1 · Mainnet V1.0
 
