@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description:
     "AsterraPools builds liquidity on Robinhood Chain. DLMM bins and DAMM curves for every kind of pool, LP positions as NFTs and one smart router across every venue.",
   openGraph: { siteName: "AsterraPools", type: "website" },
-  twitter: { card: "summary_large_image", site: "@AsterraPools", creator: "@AsterraPools" },
+  twitter: { card: "summary_large_image", site: "@PulseOfAster", creator: "@PulseOfAster" },
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://testnet.asterrapools.tech"),
 };
 
