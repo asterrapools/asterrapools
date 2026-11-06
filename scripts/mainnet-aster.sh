@@ -14,7 +14,8 @@ KEYSTORE="${KEYSTORE:-$HOME/.foundry/keystores/deployer}"
 export SIDE_USD_E6="${SIDE_USD_E6:-700000}"       # $0.70 per side
 export RANGE_TICKS="${RANGE_TICKS:-2230}"         # about ±25% around the opening price
 export PROOF_USDG_E6="${PROOF_USDG_E6:-10000}"    # $0.01 swap through Uniswap's Universal Router
-export RESERVE_WEI="${RESERVE_WEI:-150000000000000}" # 0.00015 ETH stays in the wallet for gas
+# another service pays gas from this wallet, about 0.00023 ETH a day: the seed must leave it a week of that
+export RESERVE_WEI="${RESERVE_WEI:-1600000000000000}" # 0.0016 ETH
 MODE="${1:-}"
 case "$MODE" in ""|--broadcast) ;; *) echo "usage: mainnet-aster.sh [--broadcast]"; exit 1 ;; esac
 
