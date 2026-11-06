@@ -91,6 +91,11 @@ function consider(
   if (!cur || value > cur.value) best.set(addr, { value, price, via });
 }
 
+/** An RPC failure says nothing about the feed: the last oracle price stands until the next read, a pool price never replaces it. */
+export function lastOraclePrice(t: { price_usd?: number | null; price_source?: string | null }): number | null {
+  return t.price_source === "oracle" && t.price_usd ? t.price_usd : null;
+}
+
 /** Hub prices are 1e18-scaled. */
 export function scaleE18(v: bigint): number | null {
   if (v <= 0n) return null;
