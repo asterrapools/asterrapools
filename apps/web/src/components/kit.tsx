@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpRight, Check, ChevronDown, Search } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Copy, Search } from "lucide-react";
 import { erc20Abi, maxUint256, type Address } from "viem";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -177,6 +177,19 @@ export function ConnectGate({ children, label = "Connect wallet" }: { children: 
 }
 
 // ------------------------------------------------------------------ links & badges
+
+export function CopyAddress({ value }: { value: string }) {
+  const [done, setDone] = React.useState(false);
+  return (
+    <button
+      aria-label="Copy address"
+      onClick={() => void navigator.clipboard?.writeText(value).then(() => (setDone(true), setTimeout(() => setDone(false), 1200)))}
+      className="text-muted transition-ui hover:text-primary-text"
+    >
+      {done ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+    </button>
+  );
+}
 
 export function AddressLink({ address, label, className }: { address: string | null | undefined; label?: string; className?: string }) {
   if (!address) return <span className="text-muted">{PENDING}</span>;
