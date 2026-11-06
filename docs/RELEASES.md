@@ -56,7 +56,7 @@ USDG/ASTER pool:
 2. `bash scripts/mainnet-aster.sh` simulates, `--broadcast` sends: buys USDG and ASTER, opens and seeds USDG/ASTER at the
    market price (±25% range), then swaps $0.01 through Uniswap's Universal Router. `SIDE_USD_E6` sets the size per side and
    a re-run adds to the open pool. Rehearsed on a fork 2026-11-06, including the off-market and low-balance stops.
-   The script refuses a seed that leaves under `RESERVE_WEI` (0.0016 ETH): another service pays about 0.00023 ETH of gas
+   The script refuses a seed that leaves under `RESERVE_WEI` (0.0003 ETH): another service pays up to about 0.00004 ETH of gas
    a day from this wallet, so its transactions can also take a nonce mid-run. If a run stops after the mint, do not
    re-run it: that seeds a second time.
 
