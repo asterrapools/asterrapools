@@ -84,11 +84,12 @@ test("header: the nav sits right beside the logo, on the left", async ({ page })
   expect(nav!.x - (logo!.x + logo!.width)).toBeLessThan(40);
 });
 
-test("header X icon explains the move and links the new account", async ({ page }) => {
+test("header X icon explains the temporary account and links it", async ({ page }) => {
   await page.goto("/pools");
   await page.getByRole("banner").getByRole("button", { name: "Asterra on X" }).click();
-  const dialog = page.getByRole("dialog", { name: "We've moved on X." });
-  await expect(dialog).toContainText("from @AsterraPools to @PulseOfAster");
+  const dialog = page.getByRole("dialog", { name: "Our temporary home on X." });
+  await expect(dialog).toContainText("updates from our team will come through @PulseOfAster.");
+  await expect(dialog.getByRole("link", { name: "0x8c4be7763F446DF2b5A8c331e7CCF497e7F78b1d" })).toBeVisible();
   await expect(dialog.getByRole("link", { name: "Follow @PulseOfAster" })).toHaveAttribute("href", "https://x.com/pulseofaster?s=21");
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ArrowRight, ArrowUpRight, ChevronDown, Menu } from "lucide-react";
+import { CopyAddress } from "@/components/kit";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
@@ -14,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ASTER_TOKEN } from "@/lib/token";
 import { cn } from "@/lib/utils";
 import { useOpenVenues } from "@/hooks/use-venues";
 import { useNetwork } from "@/lib/network";
@@ -23,6 +25,8 @@ import { NetworkToggle } from "./network-toggle";
 import { ThemeToggle } from "./theme-toggle";
 
 const X_URL = "https://x.com/pulseofaster?s=21";
+const SITE_URL = "https://asterrapools.tech/";
+const ASTER_CA = "0x8c4be7763F446DF2b5A8c331e7CCF497e7F78b1d";
 
 /** X (Twitter) logo; lucide has no brand icons. */
 export function XIcon({ className }: { className?: string }) {
@@ -69,7 +73,7 @@ function WalletButton() {
   );
 }
 
-/** Header X icon: tells visitors the official account moved before sending them to it. */
+/** Header X icon: explains why updates come from @PulseOfAster for now, and that the site and token have not changed. */
 function XAccountDialog() {
   return (
     <Dialog>
@@ -78,7 +82,7 @@ function XAccountDialog() {
           <XIcon className="size-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="prism-ring max-w-[440px] gap-0 overflow-hidden border-0 p-7 sm:rounded-2xl">
+      <DialogContent className="prism-ring max-h-[calc(100dvh-2rem)] max-w-[480px] gap-0 overflow-y-auto overflow-x-hidden border-0 p-7 sm:rounded-2xl">
         <div className="pointer-events-none absolute -right-20 -top-28 size-72 rounded-full bg-cobalt/30 blur-[80px]" aria-hidden />
         <div className="pointer-events-none absolute -left-24 bottom-0 size-56 rounded-full bg-cyan/10 blur-[70px]" aria-hidden />
         <div className="relative">
@@ -86,18 +90,19 @@ function XAccountDialog() {
             <span className="size-1.5 rotate-45 bg-prism" aria-hidden />
             Official account update
           </p>
-          <DialogTitle className="mt-5 font-display text-[28px] font-semibold leading-tight">
-            We&apos;ve <span className="text-prism">moved</span> on X.
+          <DialogTitle className="mt-5 font-display text-[26px] font-semibold leading-tight">
+            Our <span className="text-prism">temporary</span> home on X.
           </DialogTitle>
           <DialogDescription className="mt-2.5 text-sm leading-relaxed text-fg-2">
-            The official AsterraPools account on X has moved from @AsterraPools to{" "}
-            <strong className="font-semibold text-fg">@PulseOfAster</strong>. Follow the new account for every official update.
+            Our main X account, <strong className="font-semibold text-fg">@AsterraPools</strong>, is temporarily inaccessible
+            because we can’t access its linked email. We’re working to get it back. For now, updates from our team will come
+            through <strong className="font-semibold text-fg">@PulseOfAster</strong>.
           </DialogDescription>
 
-          <div className="mt-6 flex items-center gap-2">
+          <div className="mt-5 flex items-center gap-2">
             <div className="min-w-0 flex-1 rounded-xl border bg-bg/40 p-3">
-              <p className="font-mono text-[10px] uppercase tracking-button text-muted">Previous</p>
-              <p className="mt-1 truncate text-[13px] text-muted line-through">@AsterraPools</p>
+              <p className="font-mono text-[10px] uppercase tracking-button text-muted">Main account</p>
+              <p className="mt-1 truncate text-[13px] text-fg-2">@AsterraPools</p>
             </div>
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full border bg-surface text-fg-2" aria-hidden>
               <ArrowRight className="size-4" />
@@ -108,14 +113,39 @@ function XAccountDialog() {
                   <span className="absolute inset-0 animate-ping rounded-full bg-cyan opacity-75" />
                   <span className="relative size-1.5 rounded-full bg-cyan" />
                 </span>
-                Official now
+                Updates for now
               </p>
               <p className="mt-1 truncate text-[13px] font-semibold text-fg">@PulseOfAster</p>
             </div>
           </div>
 
+          <dl className="mt-3 divide-y rounded-xl border bg-bg/40 font-mono text-xs">
+            <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+              <dt className="text-[10px] uppercase tracking-button text-muted">Same website</dt>
+              <dd>
+                <a href={SITE_URL} className="text-fg transition-ui hover:text-primary-text">
+                  asterrapools.tech
+                </a>
+              </dd>
+            </div>
+            <div className="space-y-1.5 px-3 py-2.5">
+              <dt className="text-[10px] uppercase tracking-button text-muted">Same $ASTER CA</dt>
+              <dd className="flex items-center justify-between gap-3">
+                <a
+                  href={`${ASTER_TOKEN.explorer}/token/${ASTER_CA}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="min-w-0 break-all text-fg transition-ui hover:text-primary-text"
+                >
+                  {ASTER_CA}
+                </a>
+                <CopyAddress value={ASTER_CA} />
+              </dd>
+            </div>
+          </dl>
+
           <DialogClose asChild>
-            <Button asChild size="lg" className="fx-prism mt-6 w-full">
+            <Button asChild size="lg" className="fx-prism mt-5 w-full">
               <a href={X_URL} target="_blank" rel="noopener noreferrer">
                 <XIcon />
                 Follow @PulseOfAster
