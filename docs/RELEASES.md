@@ -60,6 +60,8 @@ USDG/ASTER pool:
    a day from this wallet, so its transactions can also take a nonce mid-run. If a run stops after the mint, do not
    re-run it: that seeds a second time.
 
+ASTER moved 46% within minutes of the opening and arbitrage sold most of the ASTER side, so a wider range suits it better than ±25%.
+
 That router swap is a manual test. Uniswap's routing engine does not consider the Asterra hook: it needs Uniswap's
 allowlist, whose criteria exclude a proxy that permits upgrades.
 
@@ -77,7 +79,7 @@ tokens. The user chose to seed from this balance only.
 | V1.0 seed WETH/USDG (0.0012 ETH to USDG + matching WETH) | 0.0024 ETH | ≈ $5.5 pool |
 | V2.0 feeds + launchpad + TSLA/USDG ($0.75 per side) | ≈ 0.0007 ETH | ≈ $1.5 pool |
 | Opening a module | ≈ 0.1M gas each | < $0.01 |
-| USDG/ASTER seed ($0.70 per side) + router swap | 1.5M gas + 0.00064 ETH | ≈ $1.4 pool |
+| USDG/ASTER seed ($0.10 per side) + router swap | 1.5M gas + 0.00008 ETH | ≈ $0.2 pool |
 
 With seeds this small every trade moves the price: the stock pool's circuit breaker refuses swaps above about $0.02
 until more liquidity arrives. Anyone can add liquidity on the Pools page; the deployer can top up later.

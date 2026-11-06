@@ -48,6 +48,7 @@
 | V3.0 open: credit manager, caps 100,000 / 80,000 USDG, first supply | done 2026-11-05 |
 | ASTER in the mainnet token list | done 2026-11-06 |
 | `mainnet-aster.sh` (USDG/ASTER seed, swap through Uniswap's Universal Router), fork-rehearsed | done 2026-11-06 |
+| USDG/ASTER open: $0.10 per side, ±25% range, $0.01 swap through the Universal Router | done 2026-11-06 |
 
 ## Decisions (one line each)
 
