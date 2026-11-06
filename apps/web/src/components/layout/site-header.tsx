@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ChevronDown, Menu } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ChevronDown, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,6 +69,66 @@ function WalletButton() {
   );
 }
 
+/** Header X icon: tells visitors the official account moved before sending them to it. */
+function XAccountDialog() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon-sm" className="fx-prism hidden md:inline-flex" aria-label="Asterra on X">
+          <XIcon className="size-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="prism-ring max-w-[440px] gap-0 overflow-hidden border-0 p-7 sm:rounded-2xl">
+        <div className="pointer-events-none absolute -right-20 -top-28 size-72 rounded-full bg-cobalt/30 blur-[80px]" aria-hidden />
+        <div className="pointer-events-none absolute -left-24 bottom-0 size-56 rounded-full bg-cyan/10 blur-[70px]" aria-hidden />
+        <div className="relative">
+          <p className="inline-flex items-center gap-2 rounded-full border bg-bg/40 px-3 py-1.5 font-mono text-[11px] uppercase tracking-button text-fg-2">
+            <span className="size-1.5 rotate-45 bg-prism" aria-hidden />
+            Official account update
+          </p>
+          <DialogTitle className="mt-5 font-display text-[28px] font-semibold leading-tight">
+            We&apos;ve <span className="text-prism">moved</span> on X.
+          </DialogTitle>
+          <DialogDescription className="mt-2.5 text-sm leading-relaxed text-fg-2">
+            The official AsterraPools account on X has moved from @AsterraPools to{" "}
+            <strong className="font-semibold text-fg">@PulseOfAster</strong>. Follow the new account for every official update.
+          </DialogDescription>
+
+          <div className="mt-6 flex items-center gap-2">
+            <div className="min-w-0 flex-1 rounded-xl border bg-bg/40 p-3">
+              <p className="font-mono text-[10px] uppercase tracking-button text-muted">Previous</p>
+              <p className="mt-1 truncate text-[13px] text-muted line-through">@AsterraPools</p>
+            </div>
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full border bg-surface text-fg-2" aria-hidden>
+              <ArrowRight className="size-4" />
+            </span>
+            <div className="prism-ring min-w-0 flex-1 rounded-xl bg-bg/40 p-3">
+              <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-button text-fg-2">
+                <span className="relative inline-flex size-1.5" aria-hidden>
+                  <span className="absolute inset-0 animate-ping rounded-full bg-cyan opacity-75" />
+                  <span className="relative size-1.5 rounded-full bg-cyan" />
+                </span>
+                Official now
+              </p>
+              <p className="mt-1 truncate text-[13px] font-semibold text-fg">@PulseOfAster</p>
+            </div>
+          </div>
+
+          <DialogClose asChild>
+            <Button asChild size="lg" className="fx-prism mt-6 w-full">
+              <a href={X_URL} target="_blank" rel="noopener noreferrer">
+                <XIcon />
+                Follow @PulseOfAster
+                <ArrowUpRight />
+              </a>
+            </Button>
+          </DialogClose>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
   const venues = useOpenVenues();
@@ -109,11 +170,7 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <NetworkToggle className="hidden sm:flex" />
-          <Button asChild variant="ghost" size="icon-sm" className="fx-prism hidden md:inline-flex">
-            <a href={X_URL} target="_blank" rel="noopener noreferrer" aria-label="Asterra on X">
-              <XIcon className="size-4" />
-            </a>
-          </Button>
+          <XAccountDialog />
           <ThemeToggle />
           <WalletButton />
           <Sheet>
