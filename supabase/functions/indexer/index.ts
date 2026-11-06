@@ -19,7 +19,7 @@ import {
 import { backoffMs, ChunkSizer, chunked, DEFAULT_CHUNK, nextRange, planStart, safeHead } from "../_shared/chunking.ts";
 import { amountsForLiquidity, big, isStableToken, priceFromAmounts, priceFromBin, priceFromSqrtX96, swapUsd, toHuman } from "../_shared/math.ts";
 import { decodeLog, dedupeRawLogs, type DecodedLog, logTimestamp, type RawLog, sortLogs, TOPICS, UINT64_MAX, ZERO_ADDRESS } from "../_shared/normalize.ts";
-import { derivePrices, scaleE18 } from "../_shared/pricing.ts";
+import { derivePrices, lastOraclePrice, scaleE18 } from "../_shared/pricing.ts";
 import { NATIVE } from "../_shared/external.ts";
 import { discoverExternal, type PoolKeyRow } from "./discover.ts";
 
@@ -450,16 +450,20 @@ async function indexChain(db: SupabaseClient, chainId: number, deadline: number,
     const a = l.args;
     switch (`${l.role}.${l.eventName}`) {
       // ---------------- hub
-      case "hub.AssetSet":
+      case "hub.AssetSet": {
+        const assetClass = ASSET_CLASSES[Number(a.class)] ?? "NONE";
         b.add("tokens", token(a.token), {
           chain_id: chainId,
           address: a.token,
-          asset_class: ASSET_CLASSES[Number(a.class)] ?? "NONE",
+          asset_class: assetClass,
+          // a stock can reach the indexer through an external pool first, before it is listed
+          ...(assetClass === "STOCK" || assetClass === "RWA" ? { kind: assetClass.toLowerCase() } : {}),
           asset_enabled: a.enabled,
           oracle: a.oracle === ZERO_ADDRESS ? null : a.oracle,
           max_staleness: Number(a.maxStaleness),
         }, true);
         break;
+      }
       case "hub.PoolRegistered": {
         const venue = VENUES[Number(a.venue)] ?? "NONE";
         const id = hexId(a.poolId);
@@ -1003,15 +1007,21 @@ async function refreshChainState(
   await upsertGrouped(db, "pools", updates);
 
   // USD prices: oracle assets from the hub, then pool-derived for the rest
-  const { data: tokRows } = await db.from("tokens").select("address,symbol,kind,decimals,asset_class").eq("chain_id", chainId);
+  const { data: tokRows } = await db.from("tokens").select("address,symbol,kind,decimals,asset_class,price_usd,price_source").eq("chain_id", chainId);
   const oracle = new Map<string, number>();
+  const unread = new Set<string>();
   await Promise.all((tokRows ?? []).filter((t) => t.asset_class && t.asset_class !== "NONE").map(async (t) => {
     try {
       const [px, fresh] = await client.readContract({ address: A.hub as Hex, abi: hubAbi, functionName: "tryGetPrice", args: [t.address as Hex] });
       const v = scaleE18(px);
       if (fresh && v) oracle.set(t.address, v);
     } catch {
-      // no feed
+      // tryGetPrice answers a missing feed without reverting, so this is the RPC, usually its rate limit
+      const last = lastOraclePrice(t);
+      if (last) {
+        oracle.set(t.address, last);
+        unread.add(t.address);
+      }
     }
   }));
   const { data: poolPx } = await db.from("pools").select("pool_id,venue,token0,token1,price,reserve0,reserve1,enabled").eq("chain_id", chainId);
@@ -1020,7 +1030,7 @@ async function refreshChainState(
     (poolPx ?? []).map((p) => ({ ...p, reserve0: BigInt(p.reserve0 ?? 0), reserve1: BigInt(p.reserve1 ?? 0) })),
   );
   const now = new Date().toISOString();
-  const rows = [...prices.entries()].map(([address, p]) => ({
+  const rows = [...prices.entries()].filter(([address]) => !unread.has(address)).map(([address, p]) => ({
     chain_id: chainId, address, price_usd: p.price, price_source: p.via ? `pool:${p.via}` : p.source, price_updated_at: now,
   }));
   await upsertGrouped(db, "tokens", rows);
