@@ -49,6 +49,17 @@ V3.0:
 2. Claude: `lendingVault` and `creditManager` out of `hidden` in `mainnet.json`, `FEATURES_mainnet=launchpad,credit`
    and `FEATURES=launchpad,credit`, rebuild and redeploy. Footer v3.0.0.
 
+USDG/ASTER pool:
+
+1. `ASTER` in `tokens` of `mainnet.json` (the top-level `aster` key stays null, it belongs to the buyback module),
+   release and redeploy. This comes first: a token the indexer meets before it is listed keeps the kind "unknown".
+2. `bash scripts/mainnet-aster.sh` simulates, `--broadcast` sends: buys USDG and ASTER, opens and seeds USDG/ASTER at the
+   market price (±25% range), then swaps $0.01 through Uniswap's Universal Router. `SIDE_USD_E6` sets the size per side and
+   a re-run adds to the open pool. Rehearsed on a fork 2026-11-06, including the off-market and low-balance stops.
+
+That router swap is a manual test. Uniswap's routing engine does not consider the Asterra hook: it needs Uniswap's
+allowlist, whose criteria exclude a proxy that permits upgrades.
+
 Rehearsed end to end on a mainnet fork (2026-11-04): deploy, V1.0 seed and smoke swap, V2.0 feeds, launchpad and
 TSLA/USDG pool all succeed; quotes route WETH → USDG and USDG → TSLA after V2.0.
 
@@ -63,6 +74,7 @@ tokens. The user chose to seed from this balance only.
 | V1.0 seed WETH/USDG (0.0012 ETH to USDG + matching WETH) | 0.0024 ETH | ≈ $5.5 pool |
 | V2.0 feeds + launchpad + TSLA/USDG ($0.75 per side) | ≈ 0.0007 ETH | ≈ $1.5 pool |
 | Opening a module | ≈ 0.1M gas each | < $0.01 |
+| USDG/ASTER seed ($0.70 per side) + router swap | 1.5M gas + 0.00064 ETH | ≈ $1.4 pool |
 
 With seeds this small every trade moves the price: the stock pool's circuit breaker refuses swaps above about $0.02
 until more liquidity arrives. Anyone can add liquidity on the Pools page; the deployer can top up later.
