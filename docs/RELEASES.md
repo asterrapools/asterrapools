@@ -60,6 +60,15 @@ USDG/ASTER pool:
    a day from this wallet, so its transactions can also take a nonce mid-run. If a run stops after the mint, do not
    re-run it: that seeds a second time.
 
+Five more ASTER pools (WETH/ASTER on the hook; USDG, TSLA, AAPL, NVDA /ASTER as DAMM):
+
+1. `bash scripts/mainnet-aster-pools.sh` simulates, `--broadcast` sends. It buys ASTER and USDG through Uniswap's Universal Router
+   and each stock through its external USDG pool, then opens the five pools at the market price. Stock pairs use DAMM because
+   the hook's oracle mode needs a feed for both tokens and ASTER has none. DAMM positions span half to double the opening price
+   and are not oracle-guarded, so keep them small. `SIDE_USD_E6` (default $0.25 per side) sets the size. Simulated on live
+   state 2026-11-08: 29 transactions, 6.5M gas, about 0.0011 ETH of which the pools keep about 0.001 ETH as liquidity.
+   If a run stops half way, do not re-run it blindly: the hook pool would take a second position.
+
 ASTER moved 46% within minutes of the opening and arbitrage sold most of the ASTER side, so a wider range suits it better than ±25%.
 
 That router swap is a manual test. Uniswap's routing engine does not consider the Asterra hook: it needs Uniswap's
