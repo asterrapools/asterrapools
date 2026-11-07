@@ -21,6 +21,8 @@ const RUNS = {
   // VERIFY_DRY_RUN=1 reads the dry run instead, to prove the packages before the real broadcast
   mainnet: [
     { file: process.env.VERIFY_DRY_RUN ? "DeployMainnet.s.sol/4663/dry-run/deployAll-latest.json" : "DeployMainnet.s.sol/4663/deployAll-latest.json" },
+    // 2026-11-07 router upgrade: the launch-curve refund (docs/BLOCKERS.md M4)
+    { file: "Upgrade.s.sol/4663/run-1794038172230.json", implementations: true },
   ],
 };
 
