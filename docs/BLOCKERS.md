@@ -12,7 +12,7 @@ Commands that need the keystore password or a login are run by you in your own t
 | M1 | Mainnet V1.0 deploy + seed (keystore password) | done 2026-11-04: 36 + 5 transactions, asterrapools.tech serves mainnet |
 | M2 | Mainnet V2.0 open (keystore password), about 1 hour after M1 | done 2026-11-05 |
 | M3 | Mainnet V3.0 open (keystore password) | done 2026-11-05: 4 transactions, vault funded with 0.14 USDG |
-| M4 | Router upgrade: a launch buy past the curve returns the unused ETH (keystore password) | waiting |
+| M4 | Router upgrade: a launch buy past the curve returns the unused ETH (keystore password) | done 2026-11-07: implementation `0xbB38…BE05`, 2 transactions, verified (exact match) |
 
 ## M1 · Mainnet V1.0
 
