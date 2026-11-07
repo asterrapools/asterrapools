@@ -33,8 +33,12 @@ type SourceKey = (typeof SOURCES)[number]["key"];
 
 function select(d: ApiDashboard, f: FilterKey): ApiPool[] {
   if (f === "stock") return d.all.filter((p) => p.token0.kind === "stock" || p.token1.kind === "stock");
+  if (f === "all") return [...d.all].sort((a, b) => Number(hasAster(b)) - Number(hasAster(a))); // stable: ASTER pools first
   return d[f];
 }
+
+// "canonical" is set only for tokens listed in mainnet.json, so a launchpad token named ASTER does not match
+const hasAster = (p: ApiPool) => [p.token0, p.token1].some((t) => t.kind === "canonical" && t.symbol === "ASTER");
 
 export function PoolsExplorer() {
   const params = useSearchParams();
