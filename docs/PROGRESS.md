@@ -49,6 +49,7 @@
 | ASTER in the mainnet token list | done 2026-11-06 |
 | `mainnet-aster.sh` (USDG/ASTER seed, swap through Uniswap's Universal Router), fork-rehearsed | done 2026-11-06 |
 | USDG/ASTER open: $0.10 per side, ±25% range, $0.01 swap through the Universal Router | done 2026-11-06 |
+| `mainnet-aster-pools.sh`: WETH/ASTER (hook) and USDG, TSLA, AAPL, NVDA /ASTER (DAMM), $0.25 per side | done 2026-11-08, 29 transactions, indexed |
 
 ## Decisions (one line each)
 
