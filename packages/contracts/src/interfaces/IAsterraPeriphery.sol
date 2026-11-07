@@ -33,6 +33,8 @@ interface IAsterraRouter {
     error QuoteResult(uint256 amountOut, uint256[] hopAmounts);
 
     /// @notice Execute a route. Send ETH with tokenIn == WETH to wrap. Set unwrapETH to receive ETH when tokenOut == WETH.
+    ///         Input a hop does not use (a launch buy past the end of the curve) goes back to the caller, as ETH when
+    ///         paid in ETH; RouteExecuted reports the input actually spent.
     function swap(Hop[] calldata hops, uint256 amountIn, uint256 minAmountOut, address recipient, uint256 deadline, bool unwrapETH)
         external
         payable

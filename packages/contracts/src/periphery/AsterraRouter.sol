@@ -91,9 +91,10 @@ contract AsterraRouter is IAsterraRouter, IUnlockCallback, UUPSUpgradeable, Owna
         }
 
         amountOut = amountIn;
+        uint256[] memory unused = new uint256[](n);
         for (uint256 i; i < n; i++) {
             address to = (i == n - 1 && !unwrapETH) ? recipient : address(this);
-            amountOut = _execute(hops[i], amountOut, to, deadline);
+            (amountOut, unused[i]) = _execute(hops[i], amountOut, to, deadline);
         }
         if (amountOut < minAmountOut) revert Slippage();
 
@@ -102,30 +103,48 @@ contract AsterraRouter is IAsterraRouter, IUnlockCallback, UUPSUpgradeable, Owna
             (bool ok,) = recipient.call{value: amountOut}("");
             if (!ok) revert BadRoute();
         }
-        emit RouteExecuted(msg.sender, recipient, hops[0].tokenIn, tokenOut, amountIn, amountOut, uint8(n));
+        for (uint256 i; i < n; i++) {
+            if (unused[i] != 0) _refund(hops[i].tokenIn, unused[i]);
+        }
+        emit RouteExecuted(msg.sender, recipient, hops[0].tokenIn, tokenOut, amountIn - unused[0], amountOut, uint8(n));
     }
 
-    function _execute(Hop calldata h, uint256 amountIn, address to, uint256 deadline) internal returns (uint256 out) {
+    /// @dev Sends back the input a hop did not take: a launch curve clamps a buy at the end of the curve and pulls only
+    ///      the WETH it needs. Paid in ETH, the change goes back as ETH.
+    function _refund(address token, uint256 amount) internal {
+        if (token == weth && msg.value != 0) {
+            IWETH9(weth).withdraw(amount);
+            (bool ok,) = msg.sender.call{value: amount}("");
+            if (!ok) revert BadRoute();
+        } else {
+            IERC20(token).safeTransfer(msg.sender, amount);
+        }
+    }
+
+    /// @return out output of the hop
+    /// @return unused input the hop left in the router (only a launch curve can leave any)
+    function _execute(Hop calldata h, uint256 amountIn, address to, uint256 deadline) internal returns (uint256 out, uint256 unused) {
         if (h.venue == Venue.V4) {
             PoolKey memory key = abi.decode(h.data, (PoolKey));
             bool zeroForOne = _direction(key, h.tokenIn, h.tokenOut);
             bytes memory r = poolManager.unlock(abi.encode(false, key, zeroForOne, amountIn, to));
-            return abi.decode(r, (uint256));
+            return (abi.decode(r, (uint256)), 0);
         }
         if (h.venue == Venue.DLMM || h.venue == Venue.DAMM) {
             _requireRegistered(bytes32(uint256(uint160(h.pool))), h.venue, h.pool);
             IERC20(h.tokenIn).forceApprove(h.pool, amountIn);
             out = IAsterraPool(h.pool).swapExactInput(h.tokenIn, amountIn, 0, to, deadline);
             IERC20(h.tokenIn).forceApprove(h.pool, 0);
-            return out;
+            return (out, 0);
         }
         if (h.venue == Venue.LAUNCH) {
             address token = abi.decode(h.data, (address));
             _requireRegistered(bytes32(uint256(uint160(token))), Venue.LAUNCH, h.pool);
+            uint256 before = IERC20(h.tokenIn).balanceOf(address(this));
             IERC20(h.tokenIn).forceApprove(h.pool, amountIn);
             out = IAsterraLaunchpad(h.pool).swapExactInput(token, h.tokenIn, amountIn, 0, to, deadline);
             IERC20(h.tokenIn).forceApprove(h.pool, 0);
-            return out;
+            return (out, amountIn - (before - IERC20(h.tokenIn).balanceOf(address(this))));
         }
         revert BadVenue();
     }
