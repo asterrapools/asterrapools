@@ -12,6 +12,7 @@ Commands that need the keystore password or a login are run by you in your own t
 | M1 | Mainnet V1.0 deploy + seed (keystore password) | done 2026-11-04: 36 + 5 transactions, asterrapools.tech serves mainnet |
 | M2 | Mainnet V2.0 open (keystore password), about 1 hour after M1 | done 2026-11-05 |
 | M3 | Mainnet V3.0 open (keystore password) | done 2026-11-05: 4 transactions, vault funded with 0.14 USDG |
+| M4 | Router upgrade: a launch buy past the curve returns the unused ETH (keystore password) | waiting |
 
 ## M1 · Mainnet V1.0
 
@@ -48,6 +49,27 @@ bash scripts/mainnet-v3.sh
 ```
 
 Then tell Claude: the Credit page and the credit contracts appear in the web app after one rebuild.
+
+## M4 · Router refund upgrade
+
+A buy through `AsterraRouter` that is larger than what a launch curve still needs used to leave the unused WETH in the
+router (the launchpad only pulls what it uses). The fixed router sends it back to the caller, as ETH when the buy was paid
+in ETH. The site buys through the router on the launch page and on Swap, so the upgrade fixes the live site without a web
+rebuild. Same storage, same constructor; rehearsed on a mainnet fork (`test/launchpad/RouterLaunchRefund.t.sol` holds the
+unit tests). Cost: one implementation deploy and one `upgradeToAndCall`, well under $1 of gas.
+
+`deployed2026-11-07` is the reference build of the code deployed today (`packages/contracts/upgrades/`, git-ignored). If it is
+missing, make it from the commit before the fix: `bash scripts/snapshot-build.sh 9117718 deployed2026-11-07`.
+
+```bash
+# Run in: ROOT (ASTERRAPOOLS)
+DIRECT=true bash scripts/upgrade.sh mainnet router deployed2026-11-07              # validate + simulate, nothing sent
+DIRECT=true bash scripts/upgrade.sh mainnet router deployed2026-11-07 --broadcast  # password asked twice
+```
+
+`DIRECT=true` lets the script send the upgrade itself (the deployer owns the router on mainnet). Testnet has no launchpad, so
+its router does not need it; to keep both in step: `bash scripts/upgrade.sh testnet router deployed2026-11-07 --broadcast`.
+Then tell Claude: the new implementation gets verified on the explorer.
 
 ## B1 · VPS SSH
 
