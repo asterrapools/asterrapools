@@ -72,7 +72,7 @@ Five more ASTER pools (WETH/ASTER on the hook; USDG, TSLA, AAPL, NVDA /ASTER as 
 The first two DLMM pools (WETH/ASTER and USDG/ASTER):
 
 1. `bash scripts/mainnet-aster-dlmm.sh` simulates, `--broadcast` sends. It buys the missing ASTER and USDG through Uniswap's
-   Universal Router, wraps ETH, then opens both pools at the market price with a 1% bin step and 21 bins (about ±10%).
+   Universal Router (15% ETH margin on the ASTER buy: the live ETH/ASTER hook takes more than forge's fork shows), wraps ETH, then opens both pools at the market price with a 1% bin step and 21 bins (about ±10%).
    `SIDE_USD_E6` (default $0.10 per side) sets the size. Simulated on live state 2026-11-09: about 2.3M gas and 0.00017 ETH
    of buys, leaving the 0.0003 ETH reserve. A re-run stops at once because the pair already has a pool at that bin step.
 

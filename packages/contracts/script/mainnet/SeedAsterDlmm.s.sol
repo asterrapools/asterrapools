@@ -16,6 +16,8 @@ import {SeedAsterPools, IWETH9} from "./SeedAsterPools.s.sol";
 contract SeedAsterDlmm is SeedAsterPools {
     uint16 internal constant BIN_STEP = 100; // 1% a bin: the 21 bins span about ±10%
     uint256 internal constant HALF = 10; // bins on each side of the active bin
+    // the live ETH/ASTER hook took about 8% on 2026-11-09 while forge's fork shows less, so 5% made the buy revert
+    uint256 internal constant ASTER_BUY_MARGIN_BPS = 1500;
 
     function run() external override {
         string memory json = vm.readFile(string.concat(vm.projectRoot(), "/../sdk/src/addresses/mainnet.json"));
@@ -37,7 +39,7 @@ contract SeedAsterDlmm is SeedAsterPools {
         uint256 asterBuy = _short(2 * asterSide, IERC20(ASTER).balanceOf(DEPLOYER));
         uint256 usdgBuy = _short(side, IERC20(usdg).balanceOf(DEPLOYER));
         uint256 wethBuy = _short(wethSide, IERC20(weth).balanceOf(DEPLOYER));
-        uint256 ethForAster = _weiFor(asterBuy, m.sqrtEthAster) * (10_000 + ASTER_MARGIN_BPS) / 10_000;
+        uint256 ethForAster = _weiFor(asterBuy, m.sqrtEthAster) * (10_000 + ASTER_BUY_MARGIN_BPS) / 10_000;
         uint256 ethForUsdg = _weiFor(usdgBuy, m.sqrtEthUsdg) * (10_000 + USDG_MARGIN_BPS) / 10_000;
         // 2.3M gas here vs 6.5M in SeedAsterPools: half its buffer still covers forge's worst case (0.000091 ETH)
         uint256 need = ethForAster + ethForUsdg + wethBuy + GAS_WEI / 2 + vm.envUint("RESERVE_WEI");
