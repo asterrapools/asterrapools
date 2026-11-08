@@ -85,7 +85,7 @@ contract SeedAsterPools is Script {
     address internal weth;
     uint256 internal side;
 
-    function run() external {
+    function run() external virtual {
         string memory json = vm.readFile(string.concat(vm.projectRoot(), "/../sdk/src/addresses/mainnet.json"));
         usdg = vm.parseJsonAddress(json, ".tokens.USDG.address");
         weth = vm.parseJsonAddress(json, ".weth");

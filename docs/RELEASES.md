@@ -69,6 +69,13 @@ Five more ASTER pools (WETH/ASTER on the hook; USDG, TSLA, AAPL, NVDA /ASTER as 
    state 2026-11-08: 29 transactions, 6.5M gas, about 0.0011 ETH of which the pools keep about 0.001 ETH as liquidity.
    If a run stops half way, do not re-run it blindly: the hook pool would take a second position.
 
+The first two DLMM pools (WETH/ASTER and USDG/ASTER):
+
+1. `bash scripts/mainnet-aster-dlmm.sh` simulates, `--broadcast` sends. It buys the missing ASTER and USDG through Uniswap's
+   Universal Router, wraps ETH, then opens both pools at the market price with a 1% bin step and 21 bins (about ±10%).
+   `SIDE_USD_E6` (default $0.10 per side) sets the size. Simulated on live state 2026-11-09: about 2.3M gas and 0.00017 ETH
+   of buys, leaving the 0.0003 ETH reserve. A re-run stops at once because the pair already has a pool at that bin step.
+
 ASTER moved 46% within minutes of the opening and arbitrage sold most of the ASTER side, so a wider range suits it better than ±25%.
 
 That router swap is a manual test. Uniswap's routing engine does not consider the Asterra hook: it needs Uniswap's
