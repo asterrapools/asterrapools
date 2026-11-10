@@ -11,6 +11,7 @@ const ALL_PRIMARY: (NavItem & { hidden?: boolean })[] = [
   { href: "/swap", label: "Swap" },
   { href: "/pools", label: "Pools" },
   { href: "/positions", label: "Positions" },
+  { href: "/simulator", label: "Simulator" },
   { href: "/launch", label: "Launch", hidden: !FEATURES.launchpad },
   { href: "/credit", label: "Credit", hidden: !FEATURES.credit },
   { href: "/analytics", label: "Analytics" },
