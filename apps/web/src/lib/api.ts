@@ -1,5 +1,6 @@
 import type { ApiDashboard, ApiHealth, ApiPool, ApiSwapEvent, ApiToken } from "@asterrapools/sdk";
 import { API_URL, CHAIN_ID } from "./network";
+import type { SimTrade } from "./simulator";
 
 export { API_URL };
 
@@ -169,6 +170,14 @@ export interface ApiPoolDetail extends ApiPoolWithOracle {
   flow?: { t: string; volume_usd: number; fees_usd: number }[];
 }
 
+/** A pool's trades for the simulator; `open` is the last trade before `since`. */
+export interface ApiPoolTrades {
+  pool_id: string;
+  since: number;
+  open: SimTrade | null;
+  trades: SimTrade[];
+}
+
 // ---------------------------------------------------------------------------
 
 export class ApiError extends Error {
@@ -207,6 +216,8 @@ export const api = {
   health: (s?: AbortSignal) => apiGet<ApiHealth>("/health", { signal: s }),
   pools: (s?: AbortSignal) => apiGet<ApiPoolWithOracle[]>(`${chain()}/pools`, { signal: s }),
   pool: (poolId: string, s?: AbortSignal) => apiGet<ApiPoolDetail>(`${chain()}/pools/${encodeURIComponent(poolId)}`, { signal: s }),
+  poolTrades: (poolId: string, since: number, s?: AbortSignal) =>
+    apiGet<ApiPoolTrades>(`${chain()}/pools/${encodeURIComponent(poolId)}/trades${qs({ since })}`, { signal: s }),
   dashboard: (s?: AbortSignal) => apiGet<ApiDashboard>(`${chain()}/dashboard`, { signal: s }),
   events: (p: { limit?: number; type?: EventType | ""; pool?: string } = {}, s?: AbortSignal) =>
     apiGet<(ApiEvent | ApiSwapEvent)[]>(`${chain()}/events${qs(p)}`, { signal: s }).then((rows) => rows.map(normalizeEvent)),

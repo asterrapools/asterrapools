@@ -23,6 +23,17 @@ export function usePool(poolId: string | undefined) {
   });
 }
 
+/** Trades since `since` (unix seconds) for the simulator; `live` polls for new trades. */
+export function usePoolTrades(poolId: string | undefined, since: number | undefined, live = false) {
+  return useQuery({
+    queryKey: k("pool-trades", poolId, since),
+    queryFn: ({ signal }) => api.poolTrades(poolId!, since!, signal),
+    enabled: Boolean(poolId) && since !== undefined,
+    refetchInterval: live ? 30_000 : false,
+    staleTime: 60_000,
+  });
+}
+
 export function useDashboard() {
   return useQuery({ queryKey: k("dashboard"), queryFn: ({ signal }) => api.dashboard(signal), refetchInterval: 60_000 });
 }

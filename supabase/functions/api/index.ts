@@ -161,6 +161,42 @@ async function poolDetail(chain: number, id: string) {
   return { ...detail, ...(prices.length >= 2 ? { price_series: prices } : {}), flow: tradeFlow(trades) };
 }
 
+/** Most trades one simulator replay reads; a busier window opens at the oldest trade kept. */
+const SIM_TRADES_MAX = 20_000;
+const SIM_PAGE = 1_000;
+
+/**
+ * A pool's trades since `since` (unix seconds) for the simulator, oldest first, as compact rows
+ * [unix ts, price after, pool delta0, pool delta1, fee in the input token, amount_usd], amounts in whole tokens.
+ * `open` is the last trade before the window, which sets the price the replay opens at.
+ */
+async function poolTrades(chain: number, id: string, since: number) {
+  const rows = await q(db.from("pools").select("pool_id,token0,token1").eq("chain_id", chain).eq("pool_id", id.toLowerCase()));
+  if (!rows.length) return null;
+  const p = rows[0];
+  const tokens = await tokenMap(chain);
+  const d0 = tokens.get(p.token0)?.decimals ?? 18;
+  const d1 = tokens.get(p.token1)?.decimals ?? 18;
+  const cols = "ts,price,delta0,delta1,fee_amount,token_in,amount_usd";
+  const from = new Date(since * 1000).toISOString();
+  const trades: Row[] = [];
+  // newest first, so a capped window keeps the latest trading
+  for (let off = 0; off < SIM_TRADES_MAX; off += SIM_PAGE) {
+    const page = await q(db.from("swaps").select(cols).eq("chain_id", chain).eq("pool_id", p.pool_id).gte("ts", from)
+      .order("ts", { ascending: false }).order("log_index", { ascending: false }).range(off, Math.min(off + SIM_PAGE, SIM_TRADES_MAX) - 1));
+    trades.push(...page);
+    if (page.length < SIM_PAGE) break;
+  }
+  const capped = trades.length >= SIM_TRADES_MAX;
+  const before = capped ? [] : await q(db.from("swaps").select(cols).eq("chain_id", chain).eq("pool_id", p.pool_id).lt("ts", from).not("price", "is", null).order("ts", { ascending: false }).limit(1));
+  const row = (s: Row) => [
+    Math.floor(Date.parse(s.ts) / 1000), s.price, toHuman(BigInt(s.delta0), d0), toHuman(BigInt(s.delta1), d1),
+    toHuman(BigInt(s.fee_amount), s.token_in === p.token0 ? d0 : d1), s.amount_usd,
+  ];
+  const list = trades.filter((s) => s.price !== null).reverse().map(row);
+  return { pool_id: p.pool_id, since, open: before[0] ? row(before[0]) : capped ? list.shift() ?? null : null, trades: list };
+}
+
 async function dashboard(chain: number) {
   const [rows, assets] = await Promise.all([
     overview(chain),
@@ -435,6 +471,12 @@ Deno.serve(async (req) => {
     switch (res) {
       case "pools": {
         if (!arg) return ok(await pools(chain), 15);
+        if (parts[4] === "trades") {
+          const since = Number(url.searchParams.get("since") ?? Math.floor(Date.now() / 1000) - 86_400);
+          if (!Number.isSafeInteger(since) || since < 0) return fail(400, "since must be unix seconds");
+          const t = await poolTrades(chain, arg, since);
+          return t ? ok(t, 15) : fail(404, "pool not found");
+        }
         const d = await poolDetail(chain, arg);
         return d ? ok(d, 15) : fail(404, "pool not found");
       }

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, FlaskConical } from "lucide-react";
 import type { Address } from "viem";
 import { useReadContracts } from "wagmi";
 import { ThemedAreaChart, type Point } from "@/components/charts/area-chart";
@@ -170,13 +170,20 @@ export function PoolDetail({ poolId }: { poolId: string }) {
                   {!p.enabled && <Badge variant="danger">Paused</Badge>}
                 </div>
               </div>
-              {!p.external && (
-                <Button asChild>
-                  <Link href={`/swap?in=${p.token0.address}&out=${p.token1.address}`}>
-                    <ArrowLeftRight /> Trade
+              <div className="flex gap-2">
+                <Button asChild variant="secondary">
+                  <Link href={`/simulator?pool=${p.pool_id}`}>
+                    <FlaskConical /> Simulate
                   </Link>
                 </Button>
-              )}
+                {!p.external && (
+                  <Button asChild>
+                    <Link href={`/swap?in=${p.token0.address}&out=${p.token1.address}`}>
+                      <ArrowLeftRight /> Trade
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
 
             <StatGrid className="mt-8">

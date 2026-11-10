@@ -51,6 +51,7 @@
 | USDG/ASTER open: $0.10 per side, ±25% range, $0.01 swap through the Universal Router | done 2026-11-06 |
 | `mainnet-aster-pools.sh`: WETH/ASTER (hook) and USDG, TSLA, AAPL, NVDA /ASTER (DAMM), $0.25 per side | done 2026-11-08, 29 transactions, indexed |
 | `mainnet-aster-dlmm.sh`: first DLMM pools, WETH/ASTER (0x4c96…4222) and USDG/ASTER (0xCDF0…A8aa), 1% bins x 21, $0.10 per side | done 2026-11-09, 11 transactions (first run stopped after the USDG buy), indexed |
+| Liquidity simulator (`/simulator`, API `pools/:id/trades`): Backtest and Paper pool modes, Spot/Curve/Bid-ask ladders replayed against indexed trades | done 2026-11-10 |
 
 ## Decisions (one line each)
 
