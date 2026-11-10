@@ -19,7 +19,7 @@ const EXTSLOAD = [{ type: "function", name: "extsload", stateMutability: "view",
 
 const deadline = () => BigInt(Math.floor(Date.now() / 1000) + 600);
 
-function Choice<T extends string | number>({ options, value, onChange, label }: { options: { v: T; l: string }[]; value: T; onChange: (v: T) => void; label: string }) {
+export function Choice<T extends string | number>({ options, value, onChange, label }: { options: { v: T; l: string }[]; value: T; onChange: (v: T) => void; label: string }) {
   return (
     <div className="space-y-2">
       <p className="eyebrow">{label}</p>
